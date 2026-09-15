@@ -19,6 +19,12 @@ struct GeneratedContentPlan: Codable, Equatable, Sendable {
     let cards: GeneratedCardCopy
 }
 
+struct GeneratedMediaPackage: Sendable {
+    let workoutID: UUID
+    let images: [URL]
+    let video: URL
+}
+
 @MainActor
 final class AgentFleetClient: ObservableObject {
     enum State: Equatable {
@@ -26,6 +32,7 @@ final class AgentFleetClient: ObservableObject {
         case ready
         case submitting
         case generating
+        case rendering
         case completed
         case failed(String)
     }
@@ -37,6 +44,7 @@ final class AgentFleetClient: ObservableObject {
         didSet { Self.saveToken(token) }
     }
     @Published private(set) var state: State
+    @Published private(set) var media: GeneratedMediaPackage?
 
     private let session: URLSession
     private var activeTask: Task<GeneratedContentPlan, Error>?
@@ -52,6 +60,7 @@ final class AgentFleetClient: ObservableObject {
         serverURL = UserDefaults.standard.string(forKey: "agentfleet.serverURL") ?? "https://agentfleets.cn"
         token = storedToken
         state = storedToken.count >= 32 ? .ready : .notConfigured
+        media = nil
     }
 
     func refreshConfigurationState() {
@@ -96,6 +105,21 @@ final class AgentFleetClient: ObservableObject {
         }
     }
 
+    func renderMedia(for workout: WorkoutSummary, plan: GeneratedContentPlan) async throws {
+        guard isConfigured else { throw AgentFleetError.notConfigured }
+        state = .rendering
+        do {
+            let baseURL = try Self.validatedBaseURL(serverURL)
+            let package = try await Self.createMedia(baseURL: baseURL, token: token, workout: workout, plan: plan, session: session)
+            media = package
+            state = .completed
+        } catch {
+            media = nil
+            state = .failed("服务器媒体生成失败，仍可使用手机本地生成。\(error.localizedDescription)")
+            throw error
+        }
+    }
+
     private struct Creation: Decodable { let generationId: String }
     private struct Failure: Decodable { let message: String }
     private struct Result: Decodable {
@@ -119,6 +143,30 @@ final class AgentFleetClient: ObservableObject {
     private struct CreateBody: Encodable {
         let requestId: String
         let workout: WorkoutPayload
+    }
+
+    private struct RenderBody: Encodable {
+        let id: String
+        let workout: WorkoutPayload
+        let plan: GeneratedContentPlan
+    }
+
+    private struct RenderManifest: Decodable {
+        struct Xiaohongshu: Decodable {
+            let images: [URL]
+            let title: String
+            let body: String
+            let hashtags: [String]
+        }
+        struct Douyin: Decodable {
+            let video: URL
+            let title: String
+            let body: String
+            let hashtags: [String]
+        }
+        let id: String
+        let xiaohongshu: Xiaohongshu
+        let douyin: Douyin
     }
 
     private static func createGeneration(baseURL: URL, token: String, requestID: String, workout: WorkoutSummary, session: URLSession) async throws -> Creation {
@@ -146,6 +194,51 @@ final class AgentFleetClient: ObservableObject {
         var request = URLRequest(url: baseURL.appending(path: "api/integrations/applefleets/generations/\(id)"))
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         return try await send(request, as: Result.self, session: session)
+    }
+
+    private static func createMedia(baseURL: URL, token: String, workout: WorkoutSummary, plan: GeneratedContentPlan, session: URLSession) async throws -> GeneratedMediaPackage {
+        let payload = WorkoutPayload(
+            startedAt: workout.startDate,
+            distanceKilometers: workout.distanceKilometers,
+            durationSeconds: workout.duration,
+            averagePaceSeconds: workout.averagePace,
+            averageHeartRate: workout.averageHeartRate,
+            maximumHeartRate: workout.maximumHeartRate,
+            activeEnergyKcal: workout.activeEnergyKcal,
+            splits: workout.splits.map { .init(kilometer: $0.kilometer, durationSeconds: $0.duration) }
+        )
+        let renderID = "run_\(workout.id.uuidString.lowercased().replacingOccurrences(of: "-", with: ""))"
+        var request = URLRequest(url: baseURL.appending(path: "iwatch-api/renders"))
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 120
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        request.httpBody = try encoder.encode(RenderBody(id: renderID, workout: payload, plan: plan))
+        let manifest = try await send(request, as: RenderManifest.self, session: session)
+        let folder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("GeneratedMedia/\(renderID)", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let images = try await download(manifest.xiaohongshu.images, token: token, to: folder, session: session)
+        let videos = try await download([manifest.douyin.video], token: token, to: folder, session: session)
+        guard let video = videos.first else { throw AgentFleetError.invalidResponse }
+        return GeneratedMediaPackage(workoutID: workout.id, images: images, video: video)
+    }
+
+    private static func download(_ urls: [URL], token: String, to folder: URL, session: URLSession) async throws -> [URL] {
+        var files: [URL] = []
+        for remoteURL in urls {
+            var request = URLRequest(url: remoteURL)
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.timeoutInterval = 120
+            let (data, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse, 200..<300 ~= http.statusCode else { throw AgentFleetError.invalidResponse }
+            let destination = folder.appendingPathComponent(remoteURL.lastPathComponent)
+            try data.write(to: destination, options: .atomic)
+            files.append(destination)
+        }
+        return files
     }
 
     private static func send<T: Decodable>(_ request: URLRequest, as type: T.Type, session: URLSession) async throws -> T {

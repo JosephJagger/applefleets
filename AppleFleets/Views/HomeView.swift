@@ -91,7 +91,7 @@ struct HomeView: View {
                     agentFleet.refreshConfigurationState()
                     generateCopy(run)
                 } label: {
-                    Label("用 Linux Codex 生成文案", systemImage: "sparkles")
+                    Label("用 Linux 生成文案、卡片和视频", systemImage: "sparkles")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(SecondaryButtonStyle())
@@ -108,13 +108,14 @@ struct HomeView: View {
         case .ready: "已设置"
         case .submitting: "正在提交"
         case .generating: "Codex 生成中"
-        case .completed: "文案已返回"
+        case .rendering: "卡片视频生成中"
+        case .completed: agentFleet.media == nil ? "文案已返回" : "成品已返回"
         case .failed: "生成失败"
         }
     }
 
     private var isGeneratingCopy: Bool {
-        agentFleet.state == .submitting || agentFleet.state == .generating
+        agentFleet.state == .submitting || agentFleet.state == .generating || agentFleet.state == .rendering
     }
 
     private var optionalMacBridge: some View {
@@ -204,12 +205,18 @@ struct HomeView: View {
                 .font(.title2.bold())
                 .foregroundStyle(RunTheme.ink)
             TabView(selection: $selectedCard) {
-                ForEach(CardKind.allCases) { kind in
-                    WorkoutCardView(run: run, kind: kind, format: .post, copy: copy)
-                        .clipShape(RoundedRectangle(cornerRadius: 18))
-                        .shadow(color: RunTheme.ink.opacity(0.10), radius: 18, y: 8)
-                        .padding(.horizontal, 12)
-                        .tag(kind.rawValue)
+                ForEach(Array(CardKind.allCases.enumerated()), id: \.element.id) { index, kind in
+                    Group {
+                        if let media = serverMedia(for: run), media.images.indices.contains(index), let image = UIImage(contentsOfFile: media.images[index].path) {
+                            Image(uiImage: image).resizable().scaledToFit()
+                        } else {
+                            WorkoutCardView(run: run, kind: kind, format: .post, copy: copy)
+                        }
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .shadow(color: RunTheme.ink.opacity(0.10), radius: 18, y: 8)
+                    .padding(.horizontal, 12)
+                    .tag(kind.rawValue)
                 }
             }
             .frame(height: 500)
@@ -303,7 +310,7 @@ struct HomeView: View {
         Task { @MainActor in
             defer { isExporting = false }
             do {
-                let files = try CardExporter.pngFiles(for: run, copy: copy)
+                let files = serverMedia(for: run)?.images ?? (try CardExporter.pngFiles(for: run, copy: copy))
                 shareItems = files + ["\(copy.title)\n\n\(copy.body)\n\n\(copy.hashtags)"]
                 showsShareSheet = true
             } catch {
@@ -316,8 +323,13 @@ struct HomeView: View {
         isExporting = true
         Task { @MainActor in
             do {
-                let images = try CardExporter.images(for: run, format: .story, copy: copy)
-                let video = try await VideoExporter.export(images: images, id: run.id)
+                let video: URL
+                if let media = serverMedia(for: run) {
+                    video = media.video
+                } else {
+                    let images = try CardExporter.images(for: run, format: .story, copy: copy)
+                    video = try await VideoExporter.export(images: images, id: run.id)
+                }
                 shareItems = [video, "\(copy.douyinTitle)\n\n\(copy.douyinBody)\n\n\(copy.douyinHashtags)"]
                 showsShareSheet = true
             } catch {
@@ -334,10 +346,16 @@ struct HomeView: View {
                 let plan = try await agentFleet.generate(for: run)
                 guard self.run?.id == run.id else { return }
                 copy.apply(plan)
+                try await agentFleet.renderMedia(for: run, plan: plan)
             } catch {
                 errorMessage = error.localizedDescription
             }
         }
+    }
+
+    private func serverMedia(for run: WorkoutSummary) -> GeneratedMediaPackage? {
+        guard agentFleet.media?.workoutID == run.id else { return nil }
+        return agentFleet.media
     }
 }
 

@@ -2,7 +2,7 @@
   <img src="docs/assets/applefleets-hero.svg" alt="AppleFleets — Apple Watch workouts to publish-ready stories" width="100%">
 </p>
 
-<p align="center">Apple Watch records the run. iPhone reads it. Codex on Linux edits it. Xiaohongshu cards and a Douyin video return to your phone.</p>
+<p align="center">Apple Watch records the run. iPhone reads it. Linux Codex writes the copy and the Linux renderer returns finished media to the phone.</p>
 
 <p align="center">
   <a href="https://github.com/JosephJagger/applefleets/actions/workflows/build.yml"><img alt="Build" src="https://github.com/JosephJagger/applefleets/actions/workflows/build.yml/badge.svg"></a>
@@ -21,14 +21,16 @@ flowchart LR
     A[Apple Watch<br/>Workout] --> B[iPhone<br/>HealthKit]
     B -->|HTTPS| C[agentfleets.cn<br/>AgentFleet]
     C --> D[Linux host<br/>Codex]
-    D -->|Structured copy| B
+    D --> G[/root/iwatch<br/>Media renderer]
+    G -->|Finished files| B
     B --> E[Xiaohongshu<br/>4 images]
     B --> F[Douyin<br/>Vertical video]
 ```
 
 - Apple's built-in Workout app remains the watch app.
 - AgentFleet and Codex run continuously on Linux.
-- The iPhone reads HealthKit, previews copy, renders media, and opens the share sheet.
+- `/root/iwatch` renders four images and the vertical video with one consistent layout.
+- The iPhone reads HealthKit, downloads previews, and opens the share sheet. Local rendering remains available as a fallback.
 - A Mac is only needed to build and install this prototype with Xcode. TestFlight or App Store distribution would remove that installation dependency.
 
 ## Output
@@ -79,7 +81,26 @@ APPLEFLEETS_PROJECT=iwatch
 
 The project value must exactly match one unique project name. Keep the token out of Git, chat, and screenshots.
 
-### 4. Restart AgentFleet
+### 4. Start the media renderer
+
+Copy the included server into the dedicated project directory:
+
+```bash
+mkdir -p /root/iwatch
+git clone https://github.com/JosephJagger/applefleets.git /root/iwatch/source
+cp -R /root/iwatch/source/Server /root/iwatch/server
+cd /root/iwatch/server
+cp .env.example .env
+nano .env
+docker compose up -d --build
+curl --fail http://127.0.0.1:3216/health
+```
+
+If `/root/iwatch/source` already exists, run `git pull` there and copy `Server` again.
+
+Use the same token in the renderer `.env`. Reverse proxy `/iwatch-api/` on the public HTTPS domain to `http://127.0.0.1:3216/`. This route is already configured on `agentfleets.cn`.
+
+### 5. Restart AgentFleet
 
 ```bash
 docker compose up -d --build
@@ -88,7 +109,7 @@ curl --fail http://127.0.0.1:3215/ready
 
 Open the public HTTPS site again and confirm the Linux host remains online.
 
-### 5. Build the iPhone app
+### 6. Build the iPhone app
 
 On the Mac:
 
@@ -114,13 +135,13 @@ In Xcode:
 7. Enable Developer Mode if requested, then run again.
 8. Allow Health read access on first launch.
 
-### 6. Connect the phone
+### 7. Connect the phone
 
 1. Open AppleFleets on the iPhone.
 2. Under **Linux Codex**, enter the HTTPS site, such as `https://agentfleets.cn`.
 3. Paste the token generated in step 3.
-4. Open a real workout or the sample and tap **Generate with Linux Codex**.
-5. Wait for **Copy received**, review the result, then create the Xiaohongshu post or Douyin video.
+4. Open a real workout or the sample and tap the Linux generation button.
+5. Wait for the finished media status, review the result, then share the Xiaohongshu post or Douyin video.
 
 ## After every run
 
@@ -130,7 +151,7 @@ After Linux receives the job, Codex keeps working if you switch away from the ap
 
 ## Privacy and access
 
-AppleFleets sends start time, distance, duration, average pace, summarized heart rate, energy, and kilometer splits. GPS coordinates, the full heart-rate time series, and unrelated Health records remain on the phone. Connections require HTTPS, and the token is stored in the iPhone Keychain.
+AppleFleets sends start time, distance, duration, average pace, summarized heart rate, energy, and kilometer splits. GPS coordinates, the full heart-rate time series, and unrelated Health records remain on the phone. Connections require HTTPS, and the token is stored in the iPhone Keychain. Generated files stay under `/root/iwatch/server/output` and require the same token to download.
 
 The scoped token accepts only the fixed workout generation request and its result. It is not a browser administrator credential. To revoke it, generate a new value, update `.env`, and rebuild AgentFleet.
 
@@ -140,6 +161,7 @@ The scoped token accepts only the fixed workout generation request and its resul
 - **Project not found:** make `APPLEFLEETS_PROJECT` match one unique project on an online host.
 - **Content sync required:** enable content sync for that AgentFleet project.
 - **Codex keeps generating:** open the corresponding `AppleFleets` session and check host status, Codex login, approvals, and questions.
+- **Copy succeeds but media fails:** check `docker ps --filter name=applefleets-renderer` and `curl http://127.0.0.1:3216/health`. The iPhone share buttons can still render locally.
 - **No workout appears:** verify the run exists in Apple Health, check AppleFleets Health permissions, and tap **Refresh**.
 
 ## Build and test
@@ -161,6 +183,8 @@ cd Mac
 swift test
 swift build -c release
 ```
+
+Test the server code with `node --test Server/test/*.test.js`.
 
 ## License
 

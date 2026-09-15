@@ -11,17 +11,14 @@ iPhone AppleFleets
   ├─ 读取距离、活动能量和关联心率样本
   ├─ 在本机读取 GPS 路线并计算公里分段
   ├─ 沙盒缓存最近一次 WorkoutSummary
-  ├─ 带 Bearer Token 的只读局域网接口
-  └─ 新摘要主动推送到已配对的 Mac
-        │ GET /v1/latest-run 或 POST /v1/run
+  └─ 通过 HTTPS 提交去除 GPS 的训练摘要
+        │ 固定格式的 AgentFleet 集成接口
         ▼
-Mac applefleets watch
-  ├─ UUID 去重
-  ├─ 可选：Codex 分析训练并输出结构化编辑方案
-  ├─ 编辑方案决定封面标题、收尾洞察和平台文案
-  ├─ swift-render 生成四张 3:4 PNG
-  ├─ swift-render 生成 12 秒 9:16 MP4
-  └─ 保存小红书、抖音文案及完整编辑记录
+Linux AgentFleet + /root/iwatch
+  ├─ UUID 去重并交给 Codex 输出结构化编辑方案
+  ├─ Chromium 生成四张 1080 × 1440 PNG
+  ├─ FFmpeg 生成 1080 × 1920 MP4
+  └─ iPhone 携带同一令牌下载、预览和分享
 ```
 
 ## 为什么不开发 watchOS App
@@ -31,10 +28,10 @@ Mac applefleets watch
 ## 隐私边界
 
 - GPS 坐标只在 iPhone 内存中用于计算公里分段，不进入 `WorkoutSummary`。
-- iPhone 只开放最近一次跑步的只读接口。
-- Mac Token 存于 `~/.applefleets/config.json`，权限设为 `0600`；iPhone Token 存于 Keychain。
-- 未启用 `--codex` 时，全部内容在本地生成。
-- 启用 `--codex` 时，只提交日期、距离、用时、配速、平均/最高心率和公里分段；界面和 README 都明确提示这一点。
+- iPhone Token 存于 Keychain；服务器令牌只放在被 Git 忽略的 `.env`。
+- 只提交日期、距离、用时、配速、平均/最高心率、热量和公里分段。
+- 下载图片和视频也要求 Bearer Token；生成物放在 `/root/iwatch/server/output`。
+- 服务器不可用时，iPhone 可使用原有的本地生成作为备用。
 - 不使用 CloudKit 或 iCloud Drive 保存健康记录及生成物。
 
 ## 后台行为
