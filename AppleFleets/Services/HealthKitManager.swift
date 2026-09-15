@@ -38,13 +38,18 @@ final class HealthKitManager: ObservableObject {
 
     func requestAccess() async throws {
         state = .requestingAccess
-        let readTypes: Set<HKObjectType> = [
-            HKObjectType.workoutType(),
-            HKSeriesType.workoutRoute(),
-            HKObjectType.quantityType(forIdentifier: .heartRate),
-            HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning),
-            HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)
-        ].compactMap { $0 }
+        var readTypes = Set<HKObjectType>()
+        readTypes.insert(HKObjectType.workoutType())
+        readTypes.insert(HKSeriesType.workoutRoute())
+        for identifier in [
+            HKQuantityTypeIdentifier.heartRate,
+            .distanceWalkingRunning,
+            .activeEnergyBurned
+        ] {
+            if let type = HKObjectType.quantityType(forIdentifier: identifier) {
+                readTypes.insert(type)
+            }
+        }
         try await store.requestAuthorization(toShare: [], read: readTypes)
     }
 
