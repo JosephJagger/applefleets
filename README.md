@@ -59,7 +59,7 @@ Preserve any uncommitted production changes before pulling.
 
 1. Sign in to your AgentFleet site, such as `https://agentfleets.cn`.
 2. Confirm the Linux host is online.
-3. Add a project named `AppleFleets` on that host. An empty directory such as `/home/your-user/applefleets-content` is sufficient.
+3. Add a project named `iwatch` on that host, using `/root/iwatch` as its host directory.
 4. Enable content sync for the project so the final Codex message can return to the iPhone.
 
 ### 3. Create the iPhone token
@@ -74,7 +74,7 @@ Copy the resulting 64-character value, then add these lines to AgentFleet's `.en
 
 ```dotenv
 APPLEFLEETS_API_TOKEN=paste-the-64-character-value-here
-APPLEFLEETS_PROJECT=AppleFleets
+APPLEFLEETS_PROJECT=iwatch
 ```
 
 The project value must exactly match one unique project name. Keep the token out of Git, chat, and screenshots.

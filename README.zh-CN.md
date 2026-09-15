@@ -66,8 +66,8 @@ git pull
 
 1. 浏览器打开 `https://agentfleets.cn` 并登录。
 2. 确认 Linux 主机显示“在线”。
-3. 在这台主机下面添加项目，名称填写 `AppleFleets`。
-4. 项目目录可以是空目录，例如 `/home/你的用户名/applefleets-content`。
+3. 在这台主机下面添加项目，名称填写 `iwatch`。
+4. 项目目录填写宿主机上的 `/root/iwatch`。
 5. 打开该项目的“内容同步”。iPhone 需要它来读取 Codex 的最终文案。
 
 如果使用已有项目，下一步填写它的实际名称。项目名称必须唯一。
@@ -86,7 +86,7 @@ openssl rand -hex 32
 
 ```dotenv
 APPLEFLEETS_API_TOKEN=这里粘贴刚生成的64位字符
-APPLEFLEETS_PROJECT=AppleFleets
+APPLEFLEETS_PROJECT=iwatch
 ```
 
 `APPLEFLEETS_PROJECT` 必须和网页中的项目名称完全一致。
