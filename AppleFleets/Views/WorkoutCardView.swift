@@ -10,6 +10,7 @@ struct WorkoutCardView: View {
     let run: WorkoutSummary
     let kind: CardKind
     let format: ExportFormat
+    var copy: WorkoutCopy? = nil
 
     var body: some View {
         ZStack {
@@ -60,7 +61,7 @@ struct WorkoutCardView: View {
     private var cover: some View {
         VStack(alignment: .leading, spacing: 16) {
             Spacer(minLength: 8)
-            Text("今天的跑步\n有据可查")
+            Text(copy?.coverText ?? "今天的跑步\n有据可查")
                 .font(.system(size: format == .story ? 54 : 44, weight: .black, design: .rounded))
                 .foregroundStyle(RunTheme.ink)
                 .lineSpacing(-4)
@@ -153,7 +154,7 @@ struct WorkoutCardView: View {
     private var finishBoard: some View {
         VStack(alignment: .leading, spacing: 22) {
             cardTitle("跑完以后，\n数字才开始说话", eyebrow: "RUN NOTE")
-            Text(insight)
+            Text(copy?.closingText ?? insight)
                 .font(.system(size: format == .story ? 31 : 25, weight: .semibold, design: .rounded))
                 .foregroundStyle(RunTheme.ink)
                 .lineSpacing(8)
@@ -223,4 +224,3 @@ struct WorkoutCardView: View {
         .foregroundStyle(RunTheme.muted)
     }
 }
-

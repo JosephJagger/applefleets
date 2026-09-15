@@ -2,360 +2,166 @@
   <img src="docs/assets/applefleets-hero.svg" alt="AppleFleets — Apple Watch workouts to publish-ready stories" width="100%">
 </p>
 
-<p align="center">
-  Turn an Apple Watch run into Xiaohongshu cards, a Douyin video, and platform-specific copy—edited by Codex on your Mac.
-</p>
+<p align="center">Apple Watch records the run. iPhone reads it. Codex on Linux edits it. Xiaohongshu cards and a Douyin video return to your phone.</p>
 
 <p align="center">
   <a href="https://github.com/JosephJagger/applefleets/actions/workflows/build.yml"><img alt="Build" src="https://github.com/JosephJagger/applefleets/actions/workflows/build.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-3d72ff.svg"></a>
   <img alt="iOS 17 or later" src="https://img.shields.io/badge/iOS-17%2B-0b2044.svg">
-  <img alt="macOS 14 or later" src="https://img.shields.io/badge/macOS-14%2B-0b2044.svg">
-  <img alt="Swift" src="https://img.shields.io/badge/Swift-5-orange.svg">
 </p>
 
-<p align="center">
-  <strong>English</strong> · <a href="README.zh-CN.md">Chinese</a>
-</p>
+<p align="center"><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
 
 ---
 
-## What it creates
-
-| Output | Contents |
-| --- | --- |
-| Xiaohongshu | Four 1080 × 1440 PNG cards plus a title, post, and hashtags |
-| Douyin | One 1080 × 1920, 12-second MP4 plus a hook, caption, and hashtags |
-| Edit record | The prompt, raw Codex response, final content plan, and workout summary |
-
-Codex analyzes distance, pace, duration, heart rate, and kilometer splits. Its cover title and closing insight appear in the rendered images and video, so it does more than write a detached caption.
-
-## How it works
+## No Mac is needed for daily use
 
 ```mermaid
 flowchart LR
     A[Apple Watch<br/>Workout] --> B[iPhone<br/>HealthKit]
-    B -->|Local Wi-Fi| C[Mac<br/>AppleFleets]
-    C --> D[Codex<br/>Content edit]
-    D --> E[Xiaohongshu<br/>4 images]
-    D --> F[Douyin<br/>Vertical video]
+    B -->|HTTPS| C[agentfleets.cn<br/>AgentFleet]
+    C --> D[Linux host<br/>Codex]
+    D -->|Structured copy| B
+    B --> E[Xiaohongshu<br/>4 images]
+    B --> F[Douyin<br/>Vertical video]
 ```
 
-- Keep using Apple's built-in Workout app; no watchOS app is required.
-- GPS coordinates stay on the iPhone and never go to the Mac or Codex.
-- Generated files stay in `~/Movies/AppleFleets`.
-- Publishing remains a manual review step.
+- Apple's built-in Workout app remains the watch app.
+- AgentFleet and Codex run continuously on Linux.
+- The iPhone reads HealthKit, previews copy, renders media, and opens the share sheet.
+- A Mac is only needed to build and install this prototype with Xcode. TestFlight or App Store distribution would remove that installation dependency.
 
-## Quick start
+## Output
 
-> [!NOTE]
-> The iPhone app must be built with Xcode because this prototype reads HealthKit. The full first-time setup takes about 30–60 minutes.
+| Platform | Result |
+| --- | --- |
+| Xiaohongshu | Four 1080 × 1440 PNG cards, title, post, and hashtags |
+| Douyin | One 1080 × 1920 vertical MP4, title, caption, and hashtags |
 
-With Xcode, Homebrew, and Codex already installed:
-
-```bash
-git clone https://github.com/JosephJagger/applefleets.git
-cd applefleets
-brew install xcodegen
-xcodegen generate
-open AppleFleets.xcodeproj
-```
-
-Configure signing in Xcode, install the app on your iPhone, then build the Mac tool:
-
-```bash
-cd Mac
-swift build -c release
-.build/release/applefleets demo --codex
-```
-
-Need every click explained? Continue with the guide below.
+Codex's cover and closing lines appear in the rendered media. You review and share each result; AppleFleets does not sign in to social accounts or publish automatically.
 
 ## First-time setup
 
-### 1. Prepare the Apple devices
+You need iOS 17 or later, an Apple Watch whose runs appear in Apple Health, an AgentFleet deployment with an online Linux Codex host, and a Mac with Xcode for the initial prototype installation.
 
-You need:
+### 1. Update AgentFleet on Linux
 
-- an Apple Watch and iPhone that already save runs to Apple Health;
-- an iPhone running iOS 17 or later;
-- a Mac running macOS 14 or later;
-- an Apple ID and a cable for the first iPhone installation.
-
-Open the App Store on the Mac, install **Xcode**, open it once, accept the license, and let it install additional components. Confirm the installation in Terminal:
+From the current AgentFleet checkout:
 
 ```bash
-xcode-select -p
-xcodebuild -version
+git status
+git pull
 ```
 
-The second command should print an Xcode version.
+Preserve any uncommitted production changes before pulling.
 
-### 2. Download the project
+### 2. Add a generation project
 
-Use the green **Code** button on this page and choose **Open with GitHub Desktop**, or run:
+1. Sign in to your AgentFleet site, such as `https://agentfleets.cn`.
+2. Confirm the Linux host is online.
+3. Add a project named `AppleFleets` on that host. An empty directory such as `/home/your-user/applefleets-content` is sufficient.
+4. Enable content sync for the project so the final Codex message can return to the iPhone.
+
+### 3. Create the iPhone token
+
+Run on Linux:
+
+```bash
+openssl rand -hex 32
+```
+
+Copy the resulting 64-character value, then add these lines to AgentFleet's `.env`:
+
+```dotenv
+APPLEFLEETS_API_TOKEN=paste-the-64-character-value-here
+APPLEFLEETS_PROJECT=AppleFleets
+```
+
+The project value must exactly match one unique project name. Keep the token out of Git, chat, and screenshots.
+
+### 4. Restart AgentFleet
+
+```bash
+docker compose up -d --build
+curl --fail http://127.0.0.1:3215/ready
+```
+
+Open the public HTTPS site again and confirm the Linux host remains online.
+
+### 5. Build the iPhone app
+
+On the Mac:
 
 ```bash
 cd ~/Documents
 git clone https://github.com/JosephJagger/applefleets.git
 cd applefleets
-```
-
-The remaining examples assume the project is in `~/Documents/applefleets`. Replace that path if you chose another location.
-
-### 3. Install XcodeGen
-
-Check for Homebrew:
-
-```bash
-brew --version
-```
-
-If Terminal cannot find `brew`, install it from [brew.sh](https://brew.sh/), then run:
-
-```bash
 brew install xcodegen
-cd ~/Documents/applefleets
 xcodegen generate
 open AppleFleets.xcodeproj
 ```
 
-### 4. Configure iPhone signing
+For an existing checkout, run `git pull` before `xcodegen generate`.
 
-1. Connect and unlock the iPhone. Tap **Trust** if prompted.
-2. In Xcode, select the blue **AppleFleets** project in the left sidebar.
-3. Under **TARGETS**, select **AppleFleets**.
-4. Open **Signing & Capabilities**.
-5. Enable **Automatically manage signing**.
-6. Select your Apple ID under **Team**.
-7. Set a unique **Bundle Identifier**, such as `com.yourname.applefleets`.
+In Xcode:
 
-If your Apple ID is missing, open **Xcode → Settings → Accounts**, click `+`, and sign in.
+1. Connect and unlock the iPhone.
+2. Select the blue **AppleFleets** project and its **AppleFleets** target.
+3. Open **Signing & Capabilities**.
+4. Enable **Automatically manage signing** and select your Apple ID under **Team**.
+5. Set a unique bundle identifier, such as `com.yourname.applefleets`.
+6. Select the iPhone in the device menu and press `Command + R`.
+7. Enable Developer Mode if requested, then run again.
+8. Allow Health read access on first launch.
 
-### 5. Install the iPhone app
+### 6. Connect the phone
 
-1. Select the connected iPhone from the device menu at the top of Xcode.
-2. Click the triangular Run button or press `Command + R`.
-3. If iPhone requests Developer Mode, enable it under **Settings → Privacy & Security → Developer Mode**, restart the phone, and run again.
-4. On first launch, allow the requested Health read permissions and Local Network access.
+1. Open AppleFleets on the iPhone.
+2. Under **Linux Codex**, enter the HTTPS site, such as `https://agentfleets.cn`.
+3. Paste the token generated in step 3.
+4. Open a real workout or the sample and tap **Generate with Linux Codex**.
+5. Wait for **Copy received**, review the result, then create the Xiaohongshu post or Douyin video.
 
-The app is ready when it displays a workout or opens its demo screen.
+## After every run
 
-### 6. Sign in to Codex CLI
+End the workout on Apple Watch, wait for it to appear in Apple Health, and open AppleFleets. A newly detected run is submitted automatically when Linux Codex is configured. Use **Refresh** and the generation button if HealthKit has not refreshed yet.
 
-Check whether Codex CLI is available:
+After Linux receives the job, Codex keeps working if you switch away from the app. Requesting the same workout again resumes the same idempotent job.
 
-```bash
-codex --version
-```
+## Privacy and access
 
-If it is missing, follow the [official Codex CLI setup guide](https://help.openai.com/en/articles/11096431), or install it after installing Node.js:
+AppleFleets sends start time, distance, duration, average pace, summarized heart rate, energy, and kilometer splits. GPS coordinates, the full heart-rate time series, and unrelated Health records remain on the phone. Connections require HTTPS, and the token is stored in the iPhone Keychain.
 
-```bash
-npm install -g @openai/codex
-```
-
-Sign in and verify the session:
-
-```bash
-codex login
-codex login status
-```
-
-### 7. Render the demo
-
-The demo proves that Codex and video rendering work before you connect the iPhone:
-
-```bash
-cd ~/Documents/applefleets/Mac
-swift build -c release
-.build/release/applefleets demo --codex
-```
-
-Finder opens the result folder when rendering finishes. Check for:
-
-```text
-xiaohongshu-01.png      xiaohongshu.md
-xiaohongshu-02.png      douyin.md
-xiaohongshu-03.png      content-plan.json
-xiaohongshu-04.png      codex-input.md
-douyin-vertical.mp4     codex-output.json
-workout.json
-```
-
-### 8. Pair the iPhone and Mac
-
-1. Put the iPhone and Mac on the same Wi-Fi network.
-2. Open AppleFleets on the iPhone and keep it visible.
-3. In the first connection card, note the local address and six-digit code.
-4. Replace the example values below with the values shown on the phone:
-
-```bash
-cd ~/Documents/applefleets/Mac
-.build/release/applefleets pair http://192.168.1.20:8765 123456
-.build/release/applefleets fetch
-```
-
-Pairing works when `fetch` prints a workout containing fields such as `distanceMeters` and `heartRate`.
-
-### 9. Enable automatic generation
-
-On a regular network, run:
-
-```bash
-cd ~/Documents/applefleets
-./scripts/install-mac-agent.sh --codex
-```
-
-Allow incoming network connections if macOS asks. The agent now starts at Mac login and checks for a new workout every 15 seconds.
-
-### Keep a VPN enabled
-
-**Keep the VPN connected.** Codex should continue through the VPN while private-network traffic to the iPhone goes directly over Wi-Fi.
-
-1. Enable an option named **Allow LAN**, **Bypass LAN**, or **Exclude private networks** in the VPN application.
-2. In rule mode, route these private network ranges through `DIRECT`:
-
-```text
-192.168.0.0/16
-10.0.0.0/8
-172.16.0.0/12
-```
-
-3. After adding the direct rules, install the background agent normally:
-
-```bash
-cd ~/Documents/applefleets
-./scripts/install-mac-agent.sh --codex
-```
-
-If the VPN application also exposes a local **HTTP proxy port**, you can route only Codex HTTPS traffic to that port. `http://127.0.0.1:7890` is an example; use the port shown by your application:
-
-```bash
-cd ~/Documents/applefleets
-./scripts/install-mac-agent.sh --codex --proxy http://127.0.0.1:7890
-```
-
-This option adds `NO_PROXY` for local and private addresses. Use the same proxy for a manual demo:
-
-```bash
-cd ~/Documents/applefleets/Mac
-HTTPS_PROXY=http://127.0.0.1:7890 NO_PROXY=localhost,127.0.0.1,.local .build/release/applefleets demo --codex
-```
-
-If the VPN only provides full-tunnel mode and has no HTTP proxy port, the `DIRECT` rules and normal installer command are sufficient.
-
-## Everyday use
-
-1. Record and save a run with Apple's Workout app on the Watch.
-2. Wait for the workout to appear in Health on the iPhone.
-3. Open AppleFleets and tap the button in the top-right corner to reload the latest workout.
-4. Keep the Mac awake for a few minutes.
-5. Open the output folder:
-
-```bash
-open ~/Movies/AppleFleets
-```
-
-6. Review the images, video, and captions, then AirDrop them to the iPhone for publishing.
-
-## Verify the Codex edit
-
-Open `content-plan.json` in a generated folder:
-
-```json
-"editor": "codex"
-```
-
-That value confirms Codex created the content plan. A value of `local-template` means the Codex call failed and the offline fallback kept the workflow running.
-
-| File | Purpose |
-| --- | --- |
-| `codex-input.md` | Workout metrics and editorial instructions sent to Codex |
-| `codex-output.json` | Raw structured response from Codex |
-| `content-plan.json` | Final plan used by the renderer |
-| `xiaohongshu.md` | Ready-to-copy Xiaohongshu post |
-| `douyin.md` | Ready-to-copy Douyin caption |
+The scoped token accepts only the fixed workout generation request and its result. It is not a browser administrator credential. To revoke it, generate a new value, update `.env`, and rebuild AgentFleet.
 
 ## Troubleshooting
 
-<details>
-<summary><strong>Xcode shows a signing error</strong></summary>
+- **Needs setup:** use an `https://` URL and paste the complete token without spaces.
+- **Project not found:** make `APPLEFLEETS_PROJECT` match one unique project on an online host.
+- **Content sync required:** enable content sync for that AgentFleet project.
+- **Codex keeps generating:** open the corresponding `AppleFleets` session and check host status, Codex login, approvals, and questions.
+- **No workout appears:** verify the run exists in Apple Health, check AppleFleets Health permissions, and tap **Refresh**.
 
-Open **AppleFleets → TARGETS → AppleFleets → Signing & Capabilities**. Confirm that Team contains your Apple ID, automatic signing is enabled, and the Bundle Identifier is unique.
-
-</details>
-
-<details>
-<summary><strong>The workout does not appear</strong></summary>
-
-Confirm the run appears under **Health → Browse → Activity → Workouts**. Return to AppleFleets and use the top-right reload button. If needed, enable permissions under **Settings → Privacy & Security → Health → AppleFleets**.
-
-</details>
-
-<details>
-<summary><strong>Pairing fails</strong></summary>
-
-Keep AppleFleets visible on the iPhone. Confirm both devices use the same Wi-Fi, Local Network access is enabled, and the address and current code exactly match the phone. If the Mac uses a proxy or VPN, leave it running and add `DIRECT` rules for the three private network ranges listed above.
-
-</details>
-
-<details>
-<summary><strong>A workout does not generate content</strong></summary>
-
-Watch the agent log, then reload the workout on the iPhone:
+## Build and test
 
 ```bash
-tail -f "$HOME/Library/Application Support/AppleFleets/logs/watch.log"
-```
-
-Press `Control + C` to leave the log. Reinstall the agent if needed:
-
-```bash
-cd ~/Documents/applefleets
-./scripts/uninstall-mac-agent.sh
-./scripts/install-mac-agent.sh --codex
-```
-
-When using a local HTTP proxy port, add the `--proxy` option shown in the VPN section above.
-
-</details>
-
-<details>
-<summary><strong>Codex did not edit the content</strong></summary>
-
-```bash
-codex login status
-cd ~/Documents/applefleets/Mac
-.build/release/applefleets demo --codex
-```
-
-Read the Terminal error and inspect `content-plan.json` in the generated folder.
-
-</details>
-
-## Uninstall the background agent
-
-```bash
-cd ~/Documents/applefleets
-./scripts/uninstall-mac-agent.sh
-```
-
-## Development
-
-```bash
-# Generate and build the iPhone project
 xcodegen generate
-xcodebuild build -project AppleFleets.xcodeproj -scheme AppleFleets \
-  -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO
+xcodebuild \
+  -project AppleFleets.xcodeproj \
+  -scheme AppleFleets \
+  -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  CODE_SIGNING_ALLOWED=NO build
+```
 
-# Test the Mac tool
+The original Mac LAN bridge remains as an optional local workflow:
+
+```bash
 cd Mac
 swift test
+swift build -c release
 ```
-
-Read [Architecture](docs/ARCHITECTURE.md), [Contributing](CONTRIBUTING.md), and [Third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## License
 
-AppleFleets is available under the [MIT License](LICENSE). Third-party components retain the licenses listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+[MIT](LICENSE)

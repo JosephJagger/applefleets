@@ -22,9 +22,9 @@ enum ExportFormat: Sendable {
 
 @MainActor
 enum CardExporter {
-    static func images(for run: WorkoutSummary, format: ExportFormat) throws -> [UIImage] {
+    static func images(for run: WorkoutSummary, format: ExportFormat, copy: WorkoutCopy? = nil) throws -> [UIImage] {
         try CardKind.allCases.map { kind in
-            let renderer = ImageRenderer(content: WorkoutCardView(run: run, kind: kind, format: format))
+            let renderer = ImageRenderer(content: WorkoutCardView(run: run, kind: kind, format: format, copy: copy))
             renderer.scale = 3
             renderer.proposedSize = ProposedViewSize(format.pointSize)
             guard let image = renderer.uiImage else { throw ExportError.renderFailed }
@@ -32,12 +32,12 @@ enum CardExporter {
         }
     }
 
-    static func pngFiles(for run: WorkoutSummary) throws -> [URL] {
+    static func pngFiles(for run: WorkoutSummary, copy: WorkoutCopy? = nil) throws -> [URL] {
         let folder = FileManager.default.temporaryDirectory
             .appendingPathComponent("AppleFleets-\(run.id.uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
 
-        return try images(for: run, format: .post).enumerated().map { index, image in
+        return try images(for: run, format: .post, copy: copy).enumerated().map { index, image in
             let url = folder.appendingPathComponent(String(format: "run-card-%02d.png", index + 1))
             guard let data = image.pngData() else { throw ExportError.encodingFailed }
             try data.write(to: url, options: .atomic)
@@ -59,4 +59,3 @@ enum ExportError: LocalizedError {
         }
     }
 }
-

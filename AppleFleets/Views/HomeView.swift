@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject private var health: HealthKitManager
     @EnvironmentObject private var bridge: RunBridgeServer
+    @EnvironmentObject private var agentFleet: AgentFleetClient
     @State private var demoRun: WorkoutSummary?
     @State private var copy = WorkoutCopy.make(for: .sample)
     @State private var shareItems: [Any] = []
@@ -18,7 +19,8 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     statusStrip
-                    macBridge
+                    agentFleetPanel
+                    optionalMacBridge
                     if let run {
                         preview(run)
                         copyEditor
@@ -41,7 +43,7 @@ struct HomeView: View {
             }
         }
         .sheet(isPresented: $showsShareSheet) { ShareSheet(items: shareItems) }
-        .alert("没有完成导出", isPresented: Binding(
+        .alert("操作没有完成", isPresented: Binding(
             get: { errorMessage != nil },
             set: { if !$0 { errorMessage = nil } }
         )) {
@@ -54,9 +56,73 @@ struct HomeView: View {
                 copy = WorkoutCopy.make(for: newRun)
                 if demoRun == nil {
                     bridge.publish(newRun)
+                    if agentFleet.isConfigured {
+                        generateCopy(newRun)
+                    }
                 }
             }
         }
+    }
+
+    private var agentFleetPanel: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Linux Codex", systemImage: "server.rack")
+                    .font(.headline)
+                Spacer()
+                Text(agentFleetStatus)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(agentFleet.isConfigured ? RunTheme.track : RunTheme.coral)
+            }
+            TextField("https://agentfleets.cn", text: $agentFleet.serverURL)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.URL)
+                .textFieldStyle(.roundedBorder)
+            SecureField("连接令牌", text: $agentFleet.token)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .textFieldStyle(.roundedBorder)
+            Text("只上传距离、用时、配速、心率摘要和公里分段，不上传 GPS 轨迹。")
+                .font(.caption)
+                .foregroundStyle(RunTheme.muted)
+            if let run {
+                Button {
+                    agentFleet.refreshConfigurationState()
+                    generateCopy(run)
+                } label: {
+                    Label("用 Linux Codex 生成文案", systemImage: "sparkles")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .disabled(!agentFleet.isConfigured || isGeneratingCopy)
+            }
+        }
+        .padding(16)
+        .background(.white, in: RoundedRectangle(cornerRadius: 18))
+    }
+
+    private var agentFleetStatus: String {
+        switch agentFleet.state {
+        case .notConfigured: "需要设置"
+        case .ready: "已设置"
+        case .submitting: "正在提交"
+        case .generating: "Codex 生成中"
+        case .completed: "文案已返回"
+        case .failed: "生成失败"
+        }
+    }
+
+    private var isGeneratingCopy: Bool {
+        agentFleet.state == .submitting || agentFleet.state == .generating
+    }
+
+    private var optionalMacBridge: some View {
+        DisclosureGroup("可选：连接 Mac 局域网工具") {
+            macBridge.padding(.top, 10)
+        }
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(RunTheme.muted)
     }
 
     private var macBridge: some View {
@@ -139,7 +205,7 @@ struct HomeView: View {
                 .foregroundStyle(RunTheme.ink)
             TabView(selection: $selectedCard) {
                 ForEach(CardKind.allCases) { kind in
-                    WorkoutCardView(run: run, kind: kind, format: .post)
+                    WorkoutCardView(run: run, kind: kind, format: .post, copy: copy)
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                         .shadow(color: RunTheme.ink.opacity(0.10), radius: 18, y: 8)
                         .padding(.horizontal, 12)
@@ -156,12 +222,26 @@ struct HomeView: View {
             Text("发布文案")
                 .font(.title2.bold())
                 .foregroundStyle(RunTheme.ink)
+            Text("小红书")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(RunTheme.track)
             TextField("标题", text: $copy.title, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
             TextField("正文", text: $copy.body, axis: .vertical)
                 .lineLimit(4...8)
                 .textFieldStyle(.roundedBorder)
             TextField("话题", text: $copy.hashtags, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+            Divider()
+            Text("抖音")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(RunTheme.coral)
+            TextField("标题", text: $copy.douyinTitle, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+            TextField("正文", text: $copy.douyinBody, axis: .vertical)
+                .lineLimit(3...6)
+                .textFieldStyle(.roundedBorder)
+            TextField("话题", text: $copy.douyinHashtags, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
         }
         .padding(18)
@@ -223,7 +303,7 @@ struct HomeView: View {
         Task { @MainActor in
             defer { isExporting = false }
             do {
-                let files = try CardExporter.pngFiles(for: run)
+                let files = try CardExporter.pngFiles(for: run, copy: copy)
                 shareItems = files + ["\(copy.title)\n\n\(copy.body)\n\n\(copy.hashtags)"]
                 showsShareSheet = true
             } catch {
@@ -236,14 +316,27 @@ struct HomeView: View {
         isExporting = true
         Task { @MainActor in
             do {
-                let images = try CardExporter.images(for: run, format: .story)
+                let images = try CardExporter.images(for: run, format: .story, copy: copy)
                 let video = try await VideoExporter.export(images: images, id: run.id)
-                shareItems = [video, "\(copy.title)\n\n\(copy.body)\n\n\(copy.hashtags)"]
+                shareItems = [video, "\(copy.douyinTitle)\n\n\(copy.douyinBody)\n\n\(copy.douyinHashtags)"]
                 showsShareSheet = true
             } catch {
                 errorMessage = error.localizedDescription
             }
             isExporting = false
+        }
+    }
+
+    private func generateCopy(_ run: WorkoutSummary) {
+        guard !isGeneratingCopy else { return }
+        Task { @MainActor in
+            do {
+                let plan = try await agentFleet.generate(for: run)
+                guard self.run?.id == run.id else { return }
+                copy.apply(plan)
+            } catch {
+                errorMessage = error.localizedDescription
+            }
         }
     }
 }
