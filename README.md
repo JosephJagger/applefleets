@@ -14,24 +14,23 @@
 
 ---
 
-## No Mac is needed for daily use
+## How it works
 
 ```mermaid
 flowchart LR
-    A[Apple Watch<br/>Workout] --> B[iPhone<br/>HealthKit]
-    B -->|HTTPS| C[agentfleets.cn<br/>AgentFleet]
-    C --> D[Linux host<br/>Codex]
-    D --> G[/root/iwatch<br/>Media renderer]
+    A["Apple Watch<br>Workout"] --> B["iPhone<br>HealthKit"]
+    B -->|HTTPS| C["AgentFleet<br>agentfleets.cn"]
+    C --> D["Linux host<br>Codex"]
+    D --> G["Linux media renderer<br>/root/iwatch"]
     G -->|Finished files| B
-    B --> E[Xiaohongshu<br/>4 images]
-    B --> F[Douyin<br/>Vertical video]
+    B --> E["Xiaohongshu<br>4 images"]
+    B --> F["Douyin<br>Vertical video"]
 ```
 
 - Apple's built-in Workout app remains the watch app.
-- AgentFleet and Codex run continuously on Linux.
+- [AgentFleet](https://github.com/JosephJagger/AgentFleet) runs Codex tasks continuously on Linux.
 - `/root/iwatch` renders four images and the vertical video with one consistent layout.
 - The iPhone reads HealthKit, downloads previews, and opens the share sheet. Local rendering remains available as a fallback.
-- A Mac is only needed to build and install this prototype with Xcode. TestFlight or App Store distribution would remove that installation dependency.
 
 ## Output
 
@@ -55,9 +54,9 @@ Codex's cover and closing lines appear in the rendered media. You review and sha
 
 ## First-time setup
 
-You need iOS 17 or later, an Apple Watch whose runs appear in Apple Health, an AgentFleet deployment with an online Linux Codex host, and a Mac with Xcode for the initial prototype installation.
+You need iOS 17 or later, an Apple Watch whose runs appear in Apple Health, an [AgentFleet](https://github.com/JosephJagger/AgentFleet) deployment with an online Linux Codex host, and Xcode to build the iPhone app.
 
-### 1. Update AgentFleet on Linux
+### 1. Update [AgentFleet](https://github.com/JosephJagger/AgentFleet) on Linux
 
 From the current AgentFleet checkout:
 
@@ -120,9 +119,9 @@ curl --fail http://127.0.0.1:3215/ready
 
 Open the public HTTPS site again and confirm the Linux host remains online.
 
-### 6. Build the iPhone app
+### 6. Build and install the iPhone app
 
-On the Mac:
+Open Terminal on a computer with Xcode and run:
 
 ```bash
 cd ~/Documents
@@ -185,14 +184,6 @@ xcodebuild \
   -sdk iphonesimulator \
   -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   CODE_SIGNING_ALLOWED=NO build
-```
-
-The original Mac LAN bridge remains as an optional local workflow:
-
-```bash
-cd Mac
-swift test
-swift build -c release
 ```
 
 Test the server code with `node --test Server/test/*.test.js`.

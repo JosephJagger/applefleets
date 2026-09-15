@@ -14,25 +14,23 @@
 
 ---
 
-## 日常使用不需要 Mac
+## 项目流程
 
 ```mermaid
 flowchart LR
-    A[Apple Watch<br/>体能训练] --> B[iPhone<br/>健康数据]
-    B -->|HTTPS| C[agentfleets.cn<br/>AgentFleet]
-    C --> D[Linux 主机<br/>Codex]
-    D --> G[/root/iwatch<br/>媒体生成器]
+    A["Apple Watch<br>体能训练"] --> B["iPhone<br>健康数据"]
+    B -->|HTTPS| C["AgentFleet<br>agentfleets.cn"]
+    C --> D["Linux 主机<br>Codex"]
+    D --> G["Linux 媒体生成器<br>/root/iwatch"]
     G -->|下载成品| B
-    B --> E[小红书<br/>4 张图片]
-    B --> F[抖音<br/>竖屏视频]
+    B --> E["小红书<br>4 张图片"]
+    B --> F["抖音<br>竖屏视频"]
 ```
 
 - 手表继续使用苹果自带的“体能训练”，不用安装 Watch App。
-- Linux 主机负责运行 AgentFleet 和 Codex，可以一直在线。
+- Linux 主机通过 [AgentFleet](https://github.com/JosephJagger/AgentFleet) 调用 Codex，可以一直在线处理任务。
 - `/root/iwatch` 负责生成 4 张图片和竖屏视频，所有设备使用同一套版式。
 - iPhone 负责读取健康数据、下载预览和打开分享菜单；网络异常时可在手机本地备用生成。
-- Mac 只在第一次通过 Xcode 安装原型，以及以后重新编译升级时使用。
-- 如果以后发布到 TestFlight 或 App Store，安装更新也不需要连接 Mac。
 
 ## 能生成什么
 
@@ -60,11 +58,11 @@ Codex 返回的封面文字和收尾文字会进入图片和视频。发布前�
 
 - Apple Watch 和 iPhone，跑步记录能正常出现在 iPhone“健康”中；
 - iOS 17 或更新版本；
-- 已经运行在 `https://agentfleets.cn` 的 AgentFleet；
+- 已经运行在 `https://agentfleets.cn` 的 [AgentFleet](https://github.com/JosephJagger/AgentFleet)；
 - AgentFleet 中已连接并登录 Codex 的 Linux 主机；
-- 一台装有 Xcode 的 Mac，仅用于把原型 App 安装到 iPhone。
+- Xcode，用于编译并把 App 安装到 iPhone。
 
-### 第 1 步：更新 Linux 上的 AgentFleet
+### 第 1 步：更新 Linux 上的 [AgentFleet](https://github.com/JosephJagger/AgentFleet)
 
 登录 Linux 主机，进入当前 AgentFleet 项目目录：
 
@@ -139,9 +137,9 @@ curl --fail http://127.0.0.1:3215/ready
 
 第二条命令正常结束后，再打开 `https://agentfleets.cn`，确认网页和 Linux 主机仍然在线。
 
-### 第 6 步：在 Mac 打开 iPhone 项目
+### 第 6 步：编译并安装 iPhone App
 
-Mac 需要安装并打开过一次 Xcode。在“终端”运行：
+在装有 Xcode 的电脑上打开“终端”并运行：
 
 ```bash
 cd ~/Documents
@@ -262,14 +260,6 @@ xcodebuild \
   -sdk iphonesimulator \
   -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   CODE_SIGNING_ALLOWED=NO build
-```
-
-原来的 Mac 局域网工具仍保留为可选方案：
-
-```bash
-cd Mac
-swift test
-swift build -c release
 ```
 
 测试服务器代码：
