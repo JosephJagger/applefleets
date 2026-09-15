@@ -42,7 +42,7 @@ xcodebuild -version
 
 推荐使用 GitHub Desktop：
 
-1. 打开项目私有仓库：<https://github.com/gongqiankun/applefleets>
+1. 打开项目私有仓库：<https://github.com/JosephJagger/applefleets>
 2. 点击绿色 **Code** 按钮。
 3. 点击 **Open with GitHub Desktop**。
 4. 保存位置选择“文稿”文件夹，然后点击 **Clone**。
@@ -105,7 +105,7 @@ open AppleFleets.xcodeproj
 8. 找到 **Bundle Identifier**，改成只有你使用的名称，例如：
 
 ```text
-com.gongqiankun.applefleets
+com.josephjagger.applefleets
 ```
 
 如果 Team 中没有你的 Apple ID：
