@@ -1,0 +1,8 @@
+.DS_Store
+.build/
+Mac/.build/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.moved-aside
+
