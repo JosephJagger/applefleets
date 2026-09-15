@@ -1,8 +1,10 @@
 import Foundation
 
-struct HeartRatePoint: Codable, Hashable, Sendable {
+struct HeartRatePoint: Codable, Hashable, Identifiable, Sendable {
     let secondsFromStart: TimeInterval
     let beatsPerMinute: Double
+
+    var id: TimeInterval { secondsFromStart }
 }
 
 struct RunSplit: Codable, Hashable, Identifiable, Sendable {
@@ -63,4 +65,3 @@ extension TimeInterval {
             : String(format: "%02d:%02d", minutes, seconds)
     }
 }
-
