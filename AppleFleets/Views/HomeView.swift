@@ -310,7 +310,12 @@ struct HomeView: View {
         Task { @MainActor in
             defer { isExporting = false }
             do {
-                let files = serverMedia(for: run)?.images ?? (try CardExporter.pngFiles(for: run, copy: copy))
+                let files: [URL]
+                if let media = serverMedia(for: run) {
+                    files = media.images
+                } else {
+                    files = try CardExporter.pngFiles(for: run, copy: copy)
+                }
                 shareItems = files + ["\(copy.title)\n\n\(copy.body)\n\n\(copy.hashtags)"]
                 showsShareSheet = true
             } catch {
