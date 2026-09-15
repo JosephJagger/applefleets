@@ -47,10 +47,11 @@ final class AgentFleetClient: ObservableObject {
     }
 
     init(session: URLSession = .shared) {
+        let storedToken = Self.loadToken()
         self.session = session
         serverURL = UserDefaults.standard.string(forKey: "agentfleet.serverURL") ?? "https://agentfleets.cn"
-        token = Self.loadToken()
-        state = token.count >= 32 ? .ready : .notConfigured
+        token = storedToken
+        state = storedToken.count >= 32 ? .ready : .notConfigured
     }
 
     func refreshConfigurationState() {
