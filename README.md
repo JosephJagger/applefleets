@@ -1,85 +1,92 @@
-# AppleFleets 使用说明
+# AppleFleets
 
-跑步结束后，AppleFleets 会读取 Apple Watch 已同步到 iPhone 的跑步数据，再由 Mac 上的 Codex 编辑内容，生成：
+**English** | [简体中文](README.zh-CN.md)
 
-- 4 张小红书图片
-- 1 个抖音竖屏视频
-- 小红书标题、正文和话题
-- 抖音文案和话题
+AppleFleets turns Apple Watch running workouts into ready-to-review social content. After a workout syncs to Health on your iPhone, the project sends a private summary to your Mac. Codex edits the story, and the Mac creates:
 
-第一次安装大约需要 30～60 分钟。安装完成后，平时只要正常戴 Apple Watch 跑步即可。
+- four Xiaohongshu images;
+- one vertical Douyin video;
+- a Xiaohongshu title, post, and hashtags;
+- a Douyin hook, caption, and hashtags.
 
-## 开始前准备
+The first setup usually takes 30–60 minutes. Once it is installed, you can keep using Apple's built-in Workout app on the Watch.
 
-请准备：
+## What you need
 
-- Apple Watch 和 iPhone，已经可以使用系统“体能训练”记录跑步
-- 一台 macOS 14 或更新版本的 Mac
-- 一根可以连接 iPhone 和 Mac 的数据线
-- Apple ID
-- 可以正常使用的网络
+- An Apple Watch and iPhone that already record workouts in Apple Health
+- A Mac running macOS 14 or later
+- A cable to connect the iPhone to the Mac for the first installation
+- An Apple ID
+- An internet connection
 
-下面所有灰色代码都在 Mac 的“终端”中运行。打开方法：按 `Command + 空格`，输入“终端”，按回车。
+All gray commands below run in Terminal on the Mac. Press `Command + Space`, type `Terminal`, and press Return to open it.
 
-## 第一步：安装 Xcode
+## Step 1: Install Xcode
 
-1. 在 Mac 打开 App Store。
-2. 搜索 **Xcode** 并安装。
-3. 安装完成后打开一次 Xcode。
-4. 如果看到许可协议，点击同意。
-5. 如果提示安装附加组件，点击安装，等待完成。
+1. Open the App Store on the Mac.
+2. Search for **Xcode** and install it.
+3. Open Xcode once after installation.
+4. Accept the license if prompted.
+5. Install any additional components that Xcode requests.
 
-在终端中复制下面两行，按回车：
+Run these commands in Terminal:
 
 ```bash
 xcode-select -p
 xcodebuild -version
 ```
 
-第二条命令能显示 Xcode 版本，就说明安装成功。
+This step is complete when the second command prints an Xcode version.
 
-## 第二步：把项目下载到 Mac
+## Step 2: Download AppleFleets
 
-推荐使用 GitHub Desktop：
+The easiest option is GitHub Desktop:
 
-1. 打开项目私有仓库：<https://github.com/JosephJagger/applefleets>
-2. 点击绿色 **Code** 按钮。
-3. 点击 **Open with GitHub Desktop**。
-4. 保存位置选择“文稿”文件夹，然后点击 **Clone**。
+1. Open <https://github.com/JosephJagger/applefleets>.
+2. Click the green **Code** button.
+3. Click **Open with GitHub Desktop**.
+4. Choose the Documents folder and click **Clone**.
 
-下载完成后，项目通常在：
+The project will normally be saved here:
 
 ```text
 ~/Documents/applefleets
 ```
 
-如果你选择了其他位置，后面的 `~/Documents/applefleets` 要换成你的实际位置。
+If you chose another location, replace `~/Documents/applefleets` in later commands with that location.
 
-## 第三步：安装 Homebrew 和 XcodeGen
+You can also clone it from Terminal:
 
-先在终端运行：
+```bash
+cd ~/Documents
+git clone https://github.com/JosephJagger/applefleets.git
+```
+
+## Step 3: Install Homebrew and XcodeGen
+
+Check whether Homebrew is already installed:
 
 ```bash
 brew --version
 ```
 
-如果能看到版本号，直接安装 XcodeGen：
+If the command prints a version, install XcodeGen:
 
 ```bash
 brew install xcodegen
 ```
 
-如果提示 `command not found: brew`：
+If Terminal says `command not found: brew`:
 
-1. 打开 <https://brew.sh/zh-cn/>。
-2. 复制网页“安装 Homebrew”下面的命令。
-3. 粘贴到终端并按回车。
-4. 按网页或终端提示完成安装。
-5. 再运行 `brew install xcodegen`。
+1. Open <https://brew.sh/>.
+2. Copy the installation command shown on that page.
+3. Paste it into Terminal and press Return.
+4. Follow the instructions printed by the installer.
+5. Run `brew install xcodegen` again.
 
-## 第四步：生成并打开 iPhone App
+## Step 4: Generate and open the iPhone project
 
-在终端中逐行运行：
+Run these commands one at a time:
 
 ```bash
 cd ~/Documents/applefleets
@@ -87,87 +94,83 @@ xcodegen generate
 open AppleFleets.xcodeproj
 ```
 
-执行后会自动打开 Xcode。
+Xcode should open automatically.
 
-如果第一行提示文件夹不存在，请在 Finder 中找到 `applefleets` 文件夹，把它直接拖到终端窗口中。然后在路径前面输入 `cd `，按回车，再运行后面两行。
+If the first command says the folder does not exist, locate the `applefleets` folder in Finder. Type `cd ` in Terminal, drag the folder into Terminal, and press Return. Then run the last two commands again.
 
-## 第五步：在 Xcode 中设置签名
+## Step 5: Configure signing in Xcode
 
-按下面位置操作：
-
-1. 用数据线连接 iPhone 和 Mac。
-2. 解锁 iPhone；如果询问是否信任这台电脑，点击“信任”。
-3. 在 Xcode 左侧点击最上方蓝色的 **AppleFleets** 项目图标。
-4. 在中间的 **TARGETS** 下点击 **AppleFleets**。
-5. 点击顶部 **Signing & Capabilities**。
-6. 勾选 **Automatically manage signing**。
-7. 在 **Team** 右侧选择你的 Apple ID。
-8. 找到 **Bundle Identifier**，改成只有你使用的名称，例如：
+1. Connect the iPhone to the Mac with a cable.
+2. Unlock the iPhone and tap **Trust** if it asks whether to trust the computer.
+3. In Xcode, click the blue **AppleFleets** project icon at the top of the left sidebar.
+4. Under **TARGETS**, select **AppleFleets**.
+5. Open **Signing & Capabilities**.
+6. Enable **Automatically manage signing**.
+7. Select your Apple ID under **Team**.
+8. Change **Bundle Identifier** to a unique value, for example:
 
 ```text
 com.josephjagger.applefleets
 ```
 
-如果 Team 中没有你的 Apple ID：
+If your Apple ID is missing from the Team list:
 
-1. 点击 Xcode 顶部菜单 **Xcode → Settings → Accounts**。
-2. 点击左下角 `+`。
-3. 登录 Apple ID。
-4. 回到 **Signing & Capabilities** 重新选择 Team。
+1. Open **Xcode → Settings → Accounts**.
+2. Click `+` in the bottom-left corner.
+3. Sign in with your Apple ID.
+4. Return to **Signing & Capabilities** and select the Team again.
 
-## 第六步：把 App 安装到 iPhone
+## Step 6: Install the app on the iPhone
 
-1. 在 Xcode 窗口顶部找到设备名称。
-2. 把模拟器名称改成你连接的 iPhone。
-3. 点击左上角三角形运行按钮，或者按 `Command + R`。
-4. 等待 Xcode 编译并把 AppleFleets 安装到 iPhone。
+1. At the top of the Xcode window, click the current simulator or device name.
+2. Select the connected iPhone.
+3. Click the triangular Run button, or press `Command + R`.
+4. Wait for Xcode to build and install AppleFleets.
 
-如果 iPhone 提示需要“开发者模式”：
+If the iPhone asks for Developer Mode:
 
-1. 打开 iPhone **设置 → 隐私与安全性 → 开发者模式**。
-2. 开启开发者模式并按提示重启 iPhone。
-3. 回到 Xcode，再按一次 `Command + R`。
+1. Open **Settings → Privacy & Security → Developer Mode** on the iPhone.
+2. Enable it and restart the iPhone when asked.
+3. Return to Xcode and press `Command + R` again.
 
-第一次打开 AppleFleets 时：
+When AppleFleets opens for the first time:
 
-1. 健康数据权限全部选择“允许”。
-2. 局域网权限选择“允许”。
-3. 首页显示“已读取真实跑步记录”或能看到示例页面，就说明 iPhone 端安装成功。
+1. Allow all requested Health read permissions.
+2. Allow Local Network access.
+3. The iPhone setup is complete when the app shows a workout or lets you open the demo.
 
-## 第七步：安装并登录 Codex 命令行
+## Step 7: Install and sign in to Codex CLI
 
-AppleFleets 的自动编辑需要 Mac 能运行 `codex` 命令。
-
-先检查：
+AppleFleets needs the `codex` command on the Mac. Check it first:
 
 ```bash
 codex --version
 ```
 
-如果能看到版本号，继续登录：
+If it prints a version, sign in:
 
 ```bash
 codex login
 ```
 
-浏览器打开后，使用你的 ChatGPT 账号登录。然后检查：
+Complete the browser sign-in with your ChatGPT account, then check the result:
 
 ```bash
 codex login status
 ```
 
-如果第一条命令提示 `command not found: codex`，按照 [OpenAI 官方的 Codex CLI 安装说明](https://help.openai.com/en/articles/11096431)先安装 Node.js，再运行：
+If Terminal says `command not found: codex`, follow the [official Codex CLI setup guide](https://help.openai.com/en/articles/11096431). After installing Node.js, you can install and sign in with:
 
 ```bash
 npm install -g @openai/codex
 codex login
 ```
 
-## 第八步：先生成一次测试内容
+## Step 8: Create sample content
 
-这一步使用项目内置的示例跑步，不需要 iPhone 数据。
+This test uses the included demo workout, so it does not need iPhone data.
 
-在终端逐行运行：
+Run:
 
 ```bash
 cd ~/Documents/applefleets/Mac
@@ -175,7 +178,7 @@ swift build -c release
 .build/release/applefleets demo --codex
 ```
 
-第一次编译可能需要几分钟。看到下面这些文字表示 Codex 正在工作：
+The first build may take a few minutes. These messages show that Codex is working:
 
 ```text
 [Codex] 正在分析配速、心率和分段，编辑两套平台内容…
@@ -183,7 +186,7 @@ swift build -c release
 [渲染] 正在将 codex 编辑方案写入图卡和视频…
 ```
 
-完成后 Finder 会自动打开结果文件夹。里面应该有：
+Finder opens the result folder when rendering finishes. It should contain:
 
 ```text
 xiaohongshu-01.png
@@ -199,121 +202,122 @@ codex-output.json
 workout.json
 ```
 
-双击图片和视频，确认它们能正常打开。
+Open the images and video to confirm they work.
 
-## 第九步：连接 iPhone 和 Mac
+## Step 9: Pair the iPhone and Mac
 
-1. 确认 iPhone 和 Mac 连接同一个 Wi-Fi。
-2. 在 iPhone 打开 AppleFleets，并保持页面亮着。
-3. 找到页面“连接 Mac”区域。
-4. 记下页面显示的网址，例如 `http://192.168.1.20:8765`。
-5. 记下六位配对码。
-6. 回到 Mac 终端。
+1. Connect the iPhone and Mac to the same Wi-Fi network.
+2. Open AppleFleets on the iPhone and leave it visible.
+3. Find the **连接 Mac** section.
+4. Note the displayed address, such as `http://192.168.1.20:8765`.
+5. Note the six-digit pairing code.
+6. Return to Terminal on the Mac.
 
-运行下面的命令，把示例网址和配对码替换成你手机上显示的内容：
+Run this command, replacing the example address and code with the values shown on your iPhone:
 
 ```bash
 cd ~/Documents/applefleets/Mac
 .build/release/applefleets pair http://192.168.1.20:8765 123456
 ```
 
-看到“配对成功”后，再运行：
+After Terminal says `配对成功`, test the connection:
 
 ```bash
 .build/release/applefleets fetch
 ```
 
-如果终端显示一段包含 `distanceMeters`、`heartRate` 的文字，说明连接成功。
+Pairing works if Terminal prints text containing fields such as `distanceMeters` and `heartRate`.
 
-## 第十步：开启自动生成
+## Step 10: Enable automatic generation
 
-回到项目根目录并运行安装脚本：
+Run the installer from the project folder:
 
 ```bash
 cd ~/Documents/applefleets
 ./scripts/install-mac-agent.sh --codex
 ```
 
-看到“AppleFleets 已安装并开始监听”就完成了。以后 Mac 开机后会自动运行，不需要一直打开终端。
+Setup is complete when Terminal prints `AppleFleets 已安装并开始监听`. AppleFleets now starts automatically when you sign in to the Mac.
 
-如果 macOS 询问是否允许传入网络连接，请点击“允许”。
+If macOS asks whether to allow incoming network connections, click **Allow**.
 
-## 平时怎么使用
+## Everyday use
 
-完成上面的首次安装后，每次只需要：
+After the first setup:
 
-1. 戴 Apple Watch，使用系统“体能训练”开始户外跑步或室内跑步。
-2. 跑完后在 Apple Watch 上结束并保存训练。
-3. 回到 iPhone，等待数据出现在“健康”App 中。
-4. 打开一次 AppleFleets，点击右上角“刷新”。
-5. 保持 Mac 开机并联网，等待几分钟。
-6. 在 Mac 打开 **影片 → AppleFleets** 文件夹查看结果。
-7. 把图片、视频和文案 AirDrop 到 iPhone，检查后发布到小红书或抖音。
+1. Start an indoor or outdoor run in Apple's Workout app on the Watch.
+2. Finish and save the workout on the Watch.
+3. Wait for the workout to appear in the Health app on the iPhone.
+4. Open AppleFleets once and tap **刷新** in the top-right corner.
+5. Keep the Mac awake and connected, then wait a few minutes.
+6. Open **Movies → AppleFleets** on the Mac.
+7. AirDrop the images, video, and captions to the iPhone.
+8. Review the content and publish it in Xiaohongshu or Douyin.
 
-Mac 上也可以直接打开结果文件夹：
+Open the output folder directly with:
 
 ```bash
 open ~/Movies/AppleFleets
 ```
 
-目前最后的“发布”需要你自己确认和点击，程序不会直接替你发布账号内容。
+Publishing still requires your confirmation. AppleFleets does not post directly to your social accounts.
 
-## 怎么确认 Codex 做了什么
+## See exactly what Codex did
 
-打开本次生成的文件夹：
+Every generated folder includes:
 
-- `codex-input.md`：AppleFleets 提交给 Codex 的跑步数据和要求
-- `codex-output.json`：Codex 返回的原始编辑结果
-- `content-plan.json`：图片和视频实际采用的内容方案
-- `xiaohongshu.md`：可复制的小红书文案
-- `douyin.md`：可复制的抖音文案
+- `codex-input.md`: the workout summary and instructions sent to Codex;
+- `codex-output.json`: Codex's raw structured response;
+- `content-plan.json`: the content plan used by the image and video renderer;
+- `xiaohongshu.md`: the Xiaohongshu post;
+- `douyin.md`: the Douyin caption.
 
-如果 `content-plan.json` 中显示：
+Open `content-plan.json`. This value means Codex edited the content:
 
 ```json
 "editor": "codex"
 ```
 
-说明这次内容由 Codex 编辑。如果显示 `local-template`，说明 Codex 当时没有成功运行，程序使用了备用模板。
+If it says `local-template`, the Codex step failed and AppleFleets used its offline fallback template.
 
-## 遇到问题怎么办
+## Troubleshooting
 
-### Xcode 显示红色 Signing 错误
+### Xcode shows a red signing error
 
-回到 **AppleFleets → TARGETS → AppleFleets → Signing & Capabilities**，确认：
+Open **AppleFleets → TARGETS → AppleFleets → Signing & Capabilities** and check that:
 
-- Team 已选择你的 Apple ID
-- Automatically manage signing 已勾选
-- Bundle Identifier 已改成唯一名称
+- your Apple ID is selected under Team;
+- Automatically manage signing is enabled;
+- Bundle Identifier is unique.
 
-### AppleFleets 看不到跑步
+### AppleFleets cannot find the workout
 
-1. 打开 iPhone 的 **健康 → 浏览 → 活动 → 体能训练**。
-2. 确认刚才的跑步已经出现。
-3. 回到 AppleFleets 点击“刷新”。
-4. 仍然没有时，打开 **设置 → 隐私与安全性 → 健康 → AppleFleets**，把权限全部打开。
+1. Open **Health → Browse → Activity → Workouts** on the iPhone.
+2. Confirm that the run appears there.
+3. Return to AppleFleets and tap **刷新**.
+4. If it still does not appear, open **Settings → Privacy & Security → Health → AppleFleets** and enable the requested permissions.
 
-### Mac 配对失败
+### Pairing fails
 
-确认：
+Check that:
 
-- iPhone 和 Mac 使用同一个 Wi-Fi
-- iPhone 上 AppleFleets 保持打开
-- iPhone 已允许 AppleFleets 使用局域网
-- 暂时关闭 VPN 后重试
-- 命令中的网址和六位配对码与手机当前显示的一致
+- both devices use the same Wi-Fi;
+- AppleFleets is open on the iPhone;
+- Local Network access is enabled for AppleFleets;
+- VPN is temporarily disabled;
+- the address and current pairing code exactly match the iPhone screen.
 
-### 跑完后没有自动生成
+### A workout does not generate content
 
-先运行：
+Watch the agent log:
 
 ```bash
 tail -f "$HOME/Library/Application Support/AppleFleets/logs/watch.log"
 ```
 
-然后在 iPhone 的 AppleFleets 中点击“刷新”。按 `Control + C` 可以退出日志查看。
+Tap **刷新** in AppleFleets. Press `Control + C` to stop viewing the log.
 
-如果仍然没有生成，重新安装自动任务：
+If needed, reinstall the background agent:
 
 ```bash
 cd ~/Documents/applefleets
@@ -321,9 +325,9 @@ cd ~/Documents/applefleets
 ./scripts/install-mac-agent.sh --codex
 ```
 
-### Codex 没有参与编辑
+### Codex did not edit the content
 
-运行：
+Run:
 
 ```bash
 codex login status
@@ -331,27 +335,42 @@ cd ~/Documents/applefleets/Mac
 .build/release/applefleets demo --codex
 ```
 
-然后查看终端错误，以及结果文件夹中的 `content-plan.json`。
+Check the Terminal error and `content-plan.json` in the generated folder.
 
-## 停止自动生成
+## Disable automatic generation
 
 ```bash
 cd ~/Documents/applefleets
 ./scripts/uninstall-mac-agent.sh
 ```
 
-## 隐私说明
+## Privacy
 
-- GPS 坐标不会发送到 Mac 或 Codex。
-- Mac 只收到跑步日期、距离、用时、配速、心率和公里分段。
-- 生成内容保存在本机 `~/Movies/AppleFleets`。
-- AppleFleets 不会写入或修改健康数据。
+- GPS coordinates never leave the iPhone and are not sent to Codex.
+- The Mac receives only the date, distance, duration, pace, heart-rate data, and kilometer splits.
+- Generated content stays in `~/Movies/AppleFleets` on the Mac.
+- AppleFleets requests read-only Health access and does not modify Health data.
 
-## 给开发者的资料
+## Development
 
-日常安装不需要阅读下面的文件：
+Generate and build the iPhone project:
 
-- [系统架构](docs/ARCHITECTURE.md)
-- [第三方开源许可](THIRD_PARTY_NOTICES.md)
+```bash
+brew install xcodegen
+xcodegen generate
+xcodebuild build -project AppleFleets.xcodeproj -scheme AppleFleets -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO
+```
 
-Mac 渲染使用 [swift-render](https://github.com/skyblanket/swift-render)，局域网通信参考 [healthkit-cli](https://github.com/rakshith48/healthkit-cli)，iPhone HTTP 服务使用 [Swifter](https://github.com/httpswift/swifter)。
+Build and test the Mac renderer:
+
+```bash
+cd Mac
+swift build -c release
+swift test
+```
+
+See [Architecture](docs/ARCHITECTURE.md), [Contributing](CONTRIBUTING.md), and [Third-party notices](THIRD_PARTY_NOTICES.md).
+
+## License
+
+AppleFleets is released under the [MIT License](LICENSE). Third-party components keep their respective licenses as listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
