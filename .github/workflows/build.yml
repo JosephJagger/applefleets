@@ -13,6 +13,8 @@ jobs:
         run: brew install xcodegen
       - name: Generate iOS project
         run: xcodegen generate
+      - name: Check installer scripts
+        run: zsh -n scripts/install-mac-agent.sh scripts/uninstall-mac-agent.sh
       - name: Build iOS app for simulator
         run: >-
           xcodebuild build

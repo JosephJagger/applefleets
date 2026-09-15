@@ -200,12 +200,50 @@ Pairing works when `fetch` prints a workout containing fields such as `distanceM
 
 ### 9. Enable automatic generation
 
+On a regular network, run:
+
 ```bash
 cd ~/Documents/applefleets
 ./scripts/install-mac-agent.sh --codex
 ```
 
 Allow incoming network connections if macOS asks. The agent now starts at Mac login and checks for a new workout every 15 seconds.
+
+### Keep a VPN enabled
+
+**Keep the VPN connected.** Codex should continue through the VPN while private-network traffic to the iPhone goes directly over Wi-Fi.
+
+1. Enable an option named **Allow LAN**, **Bypass LAN**, or **Exclude private networks** in the VPN application.
+2. In rule mode, route these private network ranges through `DIRECT`:
+
+```text
+192.168.0.0/16
+10.0.0.0/8
+172.16.0.0/12
+```
+
+3. After adding the direct rules, install the background agent normally:
+
+```bash
+cd ~/Documents/applefleets
+./scripts/install-mac-agent.sh --codex
+```
+
+If the VPN application also exposes a local **HTTP proxy port**, you can route only Codex HTTPS traffic to that port. `http://127.0.0.1:7890` is an example; use the port shown by your application:
+
+```bash
+cd ~/Documents/applefleets
+./scripts/install-mac-agent.sh --codex --proxy http://127.0.0.1:7890
+```
+
+This option adds `NO_PROXY` for local and private addresses. Use the same proxy for a manual demo:
+
+```bash
+cd ~/Documents/applefleets/Mac
+HTTPS_PROXY=http://127.0.0.1:7890 NO_PROXY=localhost,127.0.0.1,.local .build/release/applefleets demo --codex
+```
+
+If the VPN only provides full-tunnel mode and has no HTTP proxy port, the `DIRECT` rules and normal installer command are sufficient.
 
 ## Everyday use
 
@@ -258,7 +296,7 @@ Confirm the run appears under **Health → Browse → Activity → Workouts**. R
 <details>
 <summary><strong>Pairing fails</strong></summary>
 
-Keep AppleFleets visible on the iPhone. Confirm both devices use the same Wi-Fi, Local Network access is enabled, VPN is disabled temporarily, and the address and current code exactly match the phone.
+Keep AppleFleets visible on the iPhone. Confirm both devices use the same Wi-Fi, Local Network access is enabled, and the address and current code exactly match the phone. If the Mac uses a proxy or VPN, leave it running and add `DIRECT` rules for the three private network ranges listed above.
 
 </details>
 
@@ -278,6 +316,8 @@ cd ~/Documents/applefleets
 ./scripts/uninstall-mac-agent.sh
 ./scripts/install-mac-agent.sh --codex
 ```
+
+When using a local HTTP proxy port, add the `--proxy` option shown in the VPN section above.
 
 </details>
 

@@ -206,12 +206,50 @@ cd ~/Documents/applefleets/Mac
 
 ### 9. 开启自动生成
 
+普通网络环境运行：
+
 ```bash
 cd ~/Documents/applefleets
 ./scripts/install-mac-agent.sh --codex
 ```
 
 如果 macOS 询问是否允许传入网络连接，请点击“允许”。自动任务以后会随 Mac 登录启动，每 15 秒检查一次新跑步。
+
+### Mac 使用 VPN 时怎么设置
+
+**保持 VPN 开启。** 目标是让 Codex 继续通过 VPN 访问网络，同时让 iPhone 的局域网地址直接连接。
+
+1. 在 VPN 软件中开启“允许局域网”“绕过局域网”或“排除私有地址”。不同软件名称可能不同。
+2. 如果使用规则模式，把下面三个网段设置为 `DIRECT`：
+
+```text
+192.168.0.0/16
+10.0.0.0/8
+172.16.0.0/12
+```
+
+3. 完成直连规则后，可以直接安装后台任务：
+
+```bash
+cd ~/Documents/applefleets
+./scripts/install-mac-agent.sh --codex
+```
+
+如果 VPN 软件还提供本地 **HTTP 代理端口**，可以使用隔离更清楚的方式：只把 Codex 的 HTTPS 请求送到这个端口。常见地址类似 `http://127.0.0.1:7890`，请以软件中显示的端口为准：
+
+```bash
+cd ~/Documents/applefleets
+./scripts/install-mac-agent.sh --codex --proxy http://127.0.0.1:7890
+```
+
+这种方式会自动设置 `NO_PROXY`，确保本机和三个私有网段不进入代理。测试示例内容时可以运行：
+
+```bash
+cd ~/Documents/applefleets/Mac
+HTTPS_PROXY=http://127.0.0.1:7890 NO_PROXY=localhost,127.0.0.1,.local .build/release/applefleets demo --codex
+```
+
+如果你的 VPN 只有全局/TUN 模式、没有 HTTP 代理端口，使用上面的 `DIRECT` 规则和普通安装命令即可。
 
 ## 平时怎么使用
 
@@ -264,7 +302,7 @@ open ~/Movies/AppleFleets
 <details>
 <summary><strong>iPhone 和 Mac 配对失败</strong></summary>
 
-保持 iPhone 上的 AppleFleets 打开。确认两台设备使用同一个 Wi-Fi、局域网权限已开启、暂时关闭 VPN，并检查网址与当前配对码是否完全一致。
+保持 iPhone 上的 AppleFleets 打开，并确认两台设备使用同一个 Wi-Fi、局域网权限已开启、网址与当前配对码完全一致。如果 Mac 使用代理或 VPN，请保持代理开启，并为上面的三个局域网网段添加 `DIRECT` 规则。
 
 </details>
 
@@ -284,6 +322,8 @@ cd ~/Documents/applefleets
 ./scripts/uninstall-mac-agent.sh
 ./scripts/install-mac-agent.sh --codex
 ```
+
+使用本地 HTTP 代理端口时，按照“Mac 使用 VPN 时怎么设置”一节加上 `--proxy`。
 
 </details>
 
