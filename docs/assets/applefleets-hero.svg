@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">AppleFleets</title>
+  <desc id="desc">Apple Watch running data becomes social content on Mac</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07172f"/>
+      <stop offset="1" stop-color="#123c82"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="420" rx="30" fill="url(#bg)"/>
+  <circle cx="1045" cy="76" r="170" fill="#3d72ff" opacity=".13"/>
+  <circle cx="1130" cy="340" r="230" fill="#ff6658" opacity=".08"/>
+  <g transform="translate(78 72)">
+    <text x="0" y="76" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="70" font-weight="bold">AppleFleets</text>
+    <text x="2" y="122" fill="#b8c9e8" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="25">RUN  ·  SYNC  ·  EDIT  ·  SHARE</text>
+    <path d="M4 250 C75 242 96 198 150 211 S234 279 302 216 S400 148 463 183 S548 252 626 167" fill="none" stroke="#57a0ff" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="626" cy="167" r="12" fill="#ff6658"/>
+    <text x="2" y="305" fill="#ffffff" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="24" font-weight="600">Apple Watch workouts → publish-ready stories</text>
+  </g>
+  <g transform="translate(850 86)">
+    <rect x="0" y="0" width="226" height="276" rx="35" fill="#f8fbff"/>
+    <rect x="25" y="27" width="176" height="12" rx="6" fill="#dce8ff"/>
+    <text x="25" y="101" fill="#0b2044" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="25" font-weight="800">TODAY'S RUN</text>
+    <text x="25" y="174" fill="#3d72ff" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="68" font-weight="900">10.24</text>
+    <text x="28" y="204" fill="#ff6658" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="17" font-weight="700">KILOMETERS</text>
+    <text x="27" y="248" fill="#61708a" font-family="ui-monospace,SFMono-Regular,monospace" font-size="17">5'05&quot; / KM</text>
+  </g>
+</svg>
