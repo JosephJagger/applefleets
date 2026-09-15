@@ -43,6 +43,17 @@ flowchart LR
 
 Codex 返回的封面文字和收尾文字会进入图片和视频。发布前仍由你检查并点击分享，项目不会自动登录或操作社交账号。
 
+<table>
+  <tr>
+    <td><img src="docs/assets/generated-preview/xiaohongshu-1.png" alt="封面卡片"></td>
+    <td><img src="docs/assets/generated-preview/xiaohongshu-2.png" alt="公里分段卡片"></td>
+    <td><img src="docs/assets/generated-preview/xiaohongshu-3.png" alt="心率摘要卡片"></td>
+    <td><img src="docs/assets/generated-preview/xiaohongshu-4.png" alt="训练总结卡片"></td>
+  </tr>
+</table>
+
+[查看服务器生成的抖音竖屏视频示例](docs/assets/generated-preview/douyin-vertical.mp4)
+
 ## 第一次安装
 
 需要准备：

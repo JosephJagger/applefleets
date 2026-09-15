@@ -42,6 +42,17 @@ flowchart LR
 
 Codex's cover and closing lines appear in the rendered media. You review and share each result; AppleFleets does not sign in to social accounts or publish automatically.
 
+<table>
+  <tr>
+    <td><img src="docs/assets/generated-preview/xiaohongshu-1.png" alt="Cover card"></td>
+    <td><img src="docs/assets/generated-preview/xiaohongshu-2.png" alt="Split card"></td>
+    <td><img src="docs/assets/generated-preview/xiaohongshu-3.png" alt="Heart-rate summary card"></td>
+    <td><img src="docs/assets/generated-preview/xiaohongshu-4.png" alt="Run summary card"></td>
+  </tr>
+</table>
+
+[Watch the server-rendered vertical video sample](docs/assets/generated-preview/douyin-vertical.mp4)
+
 ## First-time setup
 
 You need iOS 17 or later, an Apple Watch whose runs appear in Apple Health, an AgentFleet deployment with an online Linux Codex host, and a Mac with Xcode for the initial prototype installation.
