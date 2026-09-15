@@ -15,4 +15,13 @@ final class RunSummaryTests: XCTestCase {
         let decoded = try JSONDecoder().decode(RunSummary.self, from: data)
         XCTAssertEqual(decoded, .demo)
     }
+
+    func testFallbackEditorialPlanContainsPlatformSpecificContent() {
+        let plan = EditorialPlan.fallback(for: .demo)
+        XCTAssertEqual(plan.editor, "local-template")
+        XCTAssertFalse(plan.coverTitle.isEmpty)
+        XCTAssertFalse(plan.xiaohongshuBody.isEmpty)
+        XCTAssertFalse(plan.douyinCaption.isEmpty)
+        XCTAssertNotEqual(plan.xiaohongshuBody, plan.douyinCaption)
+    }
 }

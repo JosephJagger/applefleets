@@ -17,10 +17,11 @@ iPhone AppleFleets
         ▼
 Mac applefleets watch
   ├─ UUID 去重
+  ├─ 可选：Codex 分析训练并输出结构化编辑方案
+  ├─ 编辑方案决定封面标题、收尾洞察和平台文案
   ├─ swift-render 生成四张 3:4 PNG
   ├─ swift-render 生成 12 秒 9:16 MP4
-  ├─ 本地规则生成 caption.md
-  └─ 可选：Codex 改写 caption.md
+  └─ 保存小红书、抖音文案及完整编辑记录
 ```
 
 ## 为什么不开发 watchOS App

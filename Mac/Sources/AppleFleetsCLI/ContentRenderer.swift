@@ -3,7 +3,7 @@ import SwiftRender
 
 @MainActor
 struct ContentRenderer {
-    func render(_ run: RunSummary, to folder: URL) async throws {
+    func render(_ run: RunSummary, plan: EditorialPlan, to folder: URL) async throws {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
 
         let encoder = JSONEncoder()
@@ -18,7 +18,7 @@ struct ContentRenderer {
         for kind in RunCardKind.allCases {
             let output = folder.appendingPathComponent(String(format: "xiaohongshu-%02d.png", kind.rawValue + 1))
             try postRecorder.renderPNG(at: 1, to: output, postFX: false) { _ in
-                RunCardView(run: run, kind: kind, verticalVideo: false)
+                RunCardView(run: run, plan: plan, kind: kind, verticalVideo: false)
             }
         }
 
@@ -33,8 +33,7 @@ struct ContentRenderer {
             duration: 12,
             postFX: false
         ) { time in
-            RunVideoView(run: run, time: time)
+            RunVideoView(run: run, plan: plan, time: time)
         }
     }
 }
-

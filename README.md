@@ -83,7 +83,7 @@ swift build -c release
 ./scripts/install-mac-agent.sh
 ```
 
-让 Mac 上已经登录的 Codex 根据公开训练摘要改写文案：
+让 Mac 上已经登录的 Codex 担任内容编辑：
 
 ```bash
 ./scripts/install-mac-agent.sh --codex
@@ -95,7 +95,29 @@ swift build -c release
 codex login status
 ```
 
-启用 `--codex` 后，日期、距离、时间、配速、平均/最高心率和公里分段会提交给 Codex；GPS 坐标和原始 HealthKit 文件不会提交。自动任务每 15 秒检查一次，使用 workout UUID 去重。
+启用 `--codex` 后，Codex 会：
+
+1. 分析日期、距离、时间、配速、平均/最高心率和公里分段，提炼本次内容主题。
+2. 编辑图卡封面标题和结尾洞察，这两处文字会真正进入 PNG 和 MP4。
+3. 分别生成小红书标题、正文、话题，以及抖音前三秒钩子、短文案、话题。
+4. 用 JSON Schema 输出结构化方案，程序验证成功后才开始渲染；失败时自动采用本地模板。
+
+GPS 坐标和原始 HealthKit 文件不会提交。自动任务每 15 秒检查一次，使用 workout UUID 去重。
+
+想直接观察 Codex 的工作，可以先运行：
+
+```bash
+cd Mac
+.build/release/applefleets demo --codex
+```
+
+终端会显示 `[Codex] 正在分析…` 和完成状态。输出目录中会额外保存：
+
+- `codex-input.md`：提交给 Codex 的数据和编辑要求
+- `codex-output.json`：Codex 的原始结构化回答
+- `content-plan.json`：渲染器实际采用的内容方案，其中 `editor` 为 `codex`
+- `xiaohongshu.md`：小红书专用成稿
+- `douyin.md`：抖音专用成稿
 
 查看运行状态和日志：
 
@@ -117,8 +139,9 @@ tail -f "$HOME/Library/Application Support/AppleFleets/logs/watch-error.log"
 2. 数据同步到 iPhone 的 HealthKit。
 3. App 在收到 workout 更新后刷新最近一次跑步；系统可能延迟投递。
 4. iPhone 主动推送摘要给 Mac；Mac 每 15 秒轮询作为补偿。
-5. Finder 自动得到四张小红书图片、抖音视频、`caption.md` 和原始摘要副本。
-6. 通过 AirDrop 或系统分享页发到 iPhone，检查后发布。
+5. Codex 编辑主题、图卡文字和两套平台文案，渲染器再生成内容。
+6. Finder 自动得到四张小红书图片、抖音视频、两份平台文案、内容方案和原始摘要副本。
+7. 通过 AirDrop 或系统分享页发到 iPhone，检查后发布。
 
 第一期使用系统分享页，避免依赖尚未获批的抖音投稿权限；后续拿到 `aweme.share` 能力后可接入抖音 OpenSDK。
 
@@ -131,7 +154,7 @@ tail -f "$HOME/Library/Application Support/AppleFleets/logs/watch-error.log"
 - `CardExporter`：SwiftUI → PNG
 - `VideoExporter`：PNG → H.264 MP4
 - `HomeView`：预览、文案编辑、隐私设置和分享
-- `Mac/`：独立的 AppleFleets 命令、Mac 模板、Codex 文案步骤和监听器
+- `Mac/`：独立的 AppleFleets 命令、Mac 模板、Codex 内容编辑步骤和监听器
 
 ## 已知边界
 
@@ -170,7 +193,7 @@ cd Mac
 
 ### Codex 失败
 
-自动流程会保留本地模板生成的 `caption.md`，不会重复渲染视频。运行 `codex login status` 检查登录状态，再用 `applefleets demo --codex` 单独验证文案步骤。
+自动流程会改用本地模板生成图卡、视频和两份平台文案。运行 `codex login status` 检查登录状态，再用 `applefleets demo --codex` 单独验证编辑步骤，并查看输出目录中的 `codex-input.md` 与 `codex-output.json`。
 
 ## 开源来源
 

@@ -17,6 +17,7 @@ enum RunCardKind: Int, CaseIterable {
 
 struct RunCardView: View {
     let run: RunSummary
+    let plan: EditorialPlan
     let kind: RunCardKind
     let verticalVideo: Bool
     var progress: Double = 1
@@ -65,7 +66,7 @@ struct RunCardView: View {
         case .cover:
             VStack(alignment: .leading, spacing: 28 * scale) {
                 Spacer(minLength: 20)
-                Text("今天的跑步\n有据可查")
+                Text(plan.coverTitle)
                     .font(.system(size: 108 * scale, weight: .black, design: .rounded))
                     .foregroundStyle(Palette.ink)
                     .lineSpacing(-10)
@@ -144,7 +145,7 @@ struct RunCardView: View {
         case .finish:
             VStack(alignment: .leading, spacing: 54 * scale) {
                 title("跑完以后，\n数字才开始说话", eyebrow: "RUN NOTE")
-                Text(insight)
+                Text(plan.closingInsight)
                     .font(.system(size: 63 * scale, weight: .semibold, design: .rounded))
                     .foregroundStyle(Palette.ink)
                     .lineSpacing(22)
@@ -157,15 +158,6 @@ struct RunCardView: View {
                 Rectangle().fill(Palette.coral).frame(width: 190 * scale, height: 28 * scale)
             }
         }
-    }
-
-    private var insight: String {
-        guard let first = run.splits.first?.duration, let last = run.splits.last?.duration else {
-            return "完成比完美更重要。今天的每一步，都已经被认真记录。"
-        }
-        return last < first
-            ? "最后一公里比第一公里快了 \(Int(first - last)) 秒。不是突然发力，是前面的克制终于有了答案。"
-            : "今天没有追着数字跑。把呼吸放稳，把节奏留在自己手里。"
     }
 
     private func title(_ value: String, eyebrow: String) -> some View {
@@ -209,6 +201,7 @@ struct RunCardView: View {
 
 struct RunVideoView: View {
     let run: RunSummary
+    let plan: EditorialPlan
     let time: Double
 
     var body: some View {
@@ -216,7 +209,6 @@ struct RunVideoView: View {
         let local = time - Double(page * 3)
         let enter = Ease.easeOut(Ease.clip(local, 0, 0.45))
         let exit = Ease.easeIn(Ease.clip(local, 2.65, 3))
-        RunCardView(run: run, kind: RunCardKind(rawValue: page) ?? .cover, verticalVideo: true, progress: enter * (1 - exit))
+        RunCardView(run: run, plan: plan, kind: RunCardKind(rawValue: page) ?? .cover, verticalVideo: true, progress: enter * (1 - exit))
     }
 }
-

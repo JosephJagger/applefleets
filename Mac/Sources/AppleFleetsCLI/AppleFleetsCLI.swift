@@ -93,8 +93,10 @@ struct AppleFleetsCLI {
 
     @MainActor
     private static func createContent(for run: RunSummary, folder: URL, useCodex: Bool) async throws {
-        try await ContentRenderer().render(run, to: folder)
-        try CaptionWriter.write(for: run, to: folder.appendingPathComponent("caption.md"), usingCodex: useCodex)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let plan = try ContentEditor.edit(for: run, in: folder, usingCodex: useCodex)
+        print("[渲染] 正在将 \(plan.editor) 编辑方案写入图卡和视频…")
+        try await ContentRenderer().render(run, plan: plan, to: folder)
     }
 
     private static func outputFolder(for run: RunSummary) throws -> URL {
@@ -120,7 +122,7 @@ struct AppleFleetsCLI {
           applefleets render [--codex]
           applefleets watch [--interval 60] [--codex]
 
-        --codex 只把准备公开的训练摘要交给 Codex 编辑文案。
+        --codex 让 Codex 分析训练摘要，编辑选题、图卡标题、平台文案和话题。
         """)
     }
 }
