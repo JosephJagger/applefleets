@@ -19,7 +19,7 @@
 ```mermaid
 flowchart LR
     A["Apple Watch<br>体能训练"] --> B["iPhone<br>健康数据"]
-    B -->|HTTPS| C["AgentFleet<br>agentfleets.cn"]
+    B -->|HTTPS| C["自己部署的 AgentFleet"]
     C --> D["Linux 主机<br>Codex"]
     D --> G["Linux 媒体生成器<br>/root/iwatch"]
     G -->|下载成品| B
@@ -31,6 +31,8 @@ flowchart LR
 - Linux 主机通过 [AgentFleet](https://github.com/JosephJagger/AgentFleet) 调用 Codex，可以一直在线处理任务。
 - `/root/iwatch` 负责生成 4 张图片和竖屏视频，所有设备使用同一套版式。
 - iPhone 负责读取健康数据、下载预览和打开分享菜单；网络异常时可在手机本地备用生成。
+
+[AgentFleet](https://github.com/JosephJagger/AgentFleet) 是公开的开源项目。文中的“AgentFleet 地址”指使用者自己部署、可由其 iPhone 访问的 HTTPS 地址；AppleFleets 不提供公共 AgentFleet 服务地址。
 
 ## 能生成什么
 
@@ -58,7 +60,7 @@ Codex 返回的封面文字和收尾文字会进入图片和视频。发布前�
 
 - Apple Watch 和 iPhone，跑步记录能正常出现在 iPhone“健康”中；
 - iOS 17 或更新版本；
-- 已经运行在 `https://agentfleets.cn` 的 [AgentFleet](https://github.com/JosephJagger/AgentFleet)；
+- 已经自行部署并运行的 [AgentFleet](https://github.com/JosephJagger/AgentFleet)；
 - AgentFleet 中已连接并登录 Codex 的 Linux 主机；
 - Xcode，用于编译并把 App 安装到 iPhone。
 
@@ -75,7 +77,7 @@ git pull
 
 ### 第 2 步：准备 Codex 项目
 
-1. 浏览器打开 `https://agentfleets.cn` 并登录。
+1. 浏览器打开自己部署的 AgentFleet HTTPS 地址并登录。
 2. 确认 Linux 主机显示“在线”。
 3. 在这台主机下面添加项目，名称填写 `iwatch`。
 4. 项目目录填写宿主机上的 `/root/iwatch`。
@@ -124,7 +126,7 @@ docker compose up -d --build
 curl --fail http://127.0.0.1:3216/health
 ```
 
-公网需要把 `https://你的域名/iwatch-api/` 反向代理到 `http://127.0.0.1:3216/`。当前 `agentfleets.cn` 已经设置完成。
+在自己的 HTTPS 域名下，把 `/iwatch-api/` 反向代理到 `http://127.0.0.1:3216/`。该地址只需要对自己的 iPhone 可达，不必作为公共服务开放。
 
 ### 第 5 步：重启 AgentFleet
 
@@ -135,7 +137,7 @@ docker compose up -d --build
 curl --fail http://127.0.0.1:3215/ready
 ```
 
-第二条命令正常结束后，再打开 `https://agentfleets.cn`，确认网页和 Linux 主机仍然在线。
+第二条命令正常结束后，再打开自己的 AgentFleet 地址，确认网页和 Linux 主机仍然在线。
 
 ### 第 6 步：编译并安装 iPhone App
 
@@ -184,7 +186,7 @@ Team 中没有账号时，打开 **Xcode → Settings → Accounts**，点击左
 ### 第 9 步：连接 AgentFleet
 
 1. 在 iPhone 打开 AppleFleets。
-2. 在 **Linux Codex** 卡片中，地址填写 `https://agentfleets.cn`。
+2. 在 **Linux Codex** 卡片中，填写自己部署的 AgentFleet HTTPS 地址。
 3. “连接令牌”粘贴第 3 步生成的字符。
 4. 打开真实跑步，或者点击“查看示例”。
 5. 点击“用 Linux 生成文案、卡片和视频”。

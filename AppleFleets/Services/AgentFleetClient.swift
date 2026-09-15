@@ -56,10 +56,12 @@ final class AgentFleetClient: ObservableObject {
 
     init(session: URLSession = .shared) {
         let storedToken = Self.loadToken()
+        let storedURL = UserDefaults.standard.string(forKey: "agentfleet.serverURL") ?? ""
         self.session = session
-        serverURL = UserDefaults.standard.string(forKey: "agentfleet.serverURL") ?? "https://agentfleets.cn"
+        serverURL = storedURL
         token = storedToken
-        state = storedToken.count >= 32 ? .ready : .notConfigured
+        let url = URL(string: storedURL)
+        state = storedToken.count >= 32 && url?.scheme == "https" && url?.host != nil ? .ready : .notConfigured
         media = nil
     }
 

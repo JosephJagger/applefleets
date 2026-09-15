@@ -74,7 +74,7 @@ struct HomeView: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(agentFleet.isConfigured ? RunTheme.track : RunTheme.coral)
             }
-            TextField("https://agentfleets.cn", text: $agentFleet.serverURL)
+            TextField("https://你的-AgentFleet-地址", text: $agentFleet.serverURL)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .keyboardType(.URL)

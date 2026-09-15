@@ -7,7 +7,7 @@ services:
     environment:
       PORT: "3216"
       OUTPUT_DIR: /data/output
-      PUBLIC_BASE_URL: https://agentfleets.cn/iwatch-api
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
     ports:
       - "127.0.0.1:3216:3216"
     volumes:

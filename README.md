@@ -19,7 +19,7 @@
 ```mermaid
 flowchart LR
     A["Apple Watch<br>Workout"] --> B["iPhone<br>HealthKit"]
-    B -->|HTTPS| C["AgentFleet<br>agentfleets.cn"]
+    B -->|HTTPS| C["Self-hosted AgentFleet"]
     C --> D["Linux host<br>Codex"]
     D --> G["Linux media renderer<br>/root/iwatch"]
     G -->|Finished files| B
@@ -31,6 +31,8 @@ flowchart LR
 - [AgentFleet](https://github.com/JosephJagger/AgentFleet) runs Codex tasks continuously on Linux.
 - `/root/iwatch` renders four images and the vertical video with one consistent layout.
 - The iPhone reads HealthKit, downloads previews, and opens the share sheet. Local rendering remains available as a fallback.
+
+[AgentFleet](https://github.com/JosephJagger/AgentFleet) is a public open-source project. “AgentFleet address” in this guide means a self-hosted HTTPS deployment reachable from its owner's iPhone. AppleFleets does not provide a public AgentFleet service endpoint.
 
 ## Output
 
@@ -69,7 +71,7 @@ Preserve any uncommitted production changes before pulling.
 
 ### 2. Add a generation project
 
-1. Sign in to your AgentFleet site, such as `https://agentfleets.cn`.
+1. Sign in to your self-hosted AgentFleet HTTPS site.
 2. Confirm the Linux host is online.
 3. Add a project named `iwatch` on that host, using `/root/iwatch` as its host directory.
 4. Enable content sync for the project so the final Codex message can return to the iPhone.
@@ -108,7 +110,7 @@ curl --fail http://127.0.0.1:3216/health
 
 If `/root/iwatch/source` already exists, run `git pull` there and copy `Server` again.
 
-Use the same token in the renderer `.env`. Reverse proxy `/iwatch-api/` on the public HTTPS domain to `http://127.0.0.1:3216/`. This route is already configured on `agentfleets.cn`.
+Use the same token in the renderer `.env`. On your HTTPS domain, reverse proxy `/iwatch-api/` to `http://127.0.0.1:3216/`. The endpoint only needs to be reachable from your own iPhone.
 
 ### 5. Restart AgentFleet
 
@@ -148,7 +150,7 @@ In Xcode:
 ### 7. Connect the phone
 
 1. Open AppleFleets on the iPhone.
-2. Under **Linux Codex**, enter the HTTPS site, such as `https://agentfleets.cn`.
+2. Under **Linux Codex**, enter your self-hosted AgentFleet HTTPS address.
 3. Paste the token generated in step 3.
 4. Open a real workout or the sample and tap the Linux generation button.
 5. Wait for the finished media status, review the result, then share the Xiaohongshu post or Douyin video.
